@@ -1,3 +1,4 @@
-export default function GET (req, res) {
-    res.status(200).json({ text: 'Hello' });
-  }
+// /app/api/hello/route.js
+export async function GET(request) {
+  return new Response("Hello World");
+}
