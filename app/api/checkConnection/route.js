@@ -3,10 +3,10 @@ import { connectToDB } from "@/app/lib/database"; // Named import
 
 export async function GET(request) {
   try {
-    await connectToDB(); // Call the function to connect to the database
+    await connectToDB();
 
     return new Response(
-      JSON.stringify({ message: "Connected successfully to sample_mflix database" }),
+      JSON.stringify({ message: "Connected successfully to the DriveNFind Cluster and DriveNFind database" }),
       {
         status: 200,
         headers: { "Content-Type": "application/json" },
@@ -15,7 +15,7 @@ export async function GET(request) {
   } catch (error) {
     console.error("Connection error:", error);
     return new Response(
-      JSON.stringify({ message: "Failed to connect to sample_mflix database", error: error.message }),
+      JSON.stringify({ message: "Failed to connect to DriveNFind DB", error: error.message }),
       {
         status: 500,
         headers: { "Content-Type": "application/json" },

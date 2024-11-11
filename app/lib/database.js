@@ -1,7 +1,7 @@
 // app/lib/database.js
 import mongoose from "mongoose";
 
-let isConnected = false; // Track the connection state
+let isConnected = false;
 
 export const connectToDB = async () => {
   mongoose.set("strictQuery", true);
@@ -13,7 +13,7 @@ export const connectToDB = async () => {
 
   try {
     await mongoose.connect(process.env.MONGODB_URI, {
-      dbName: "sample_mflix", // Specify the database name here
+      dbName: "drivenfind",
     });
 
     isConnected = true;
