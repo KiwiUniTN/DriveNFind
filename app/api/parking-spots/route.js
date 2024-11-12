@@ -3,8 +3,6 @@ import ParkingSpot from '../../models/ParkingSpot';
 
 export async function GET(req, { params }) {
   await connectToDB();
-
-  // Parse query parameters from the request
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
   const lat = searchParams.get('lat');
@@ -14,7 +12,6 @@ export async function GET(req, { params }) {
 
   try {
     if (id) {
-      // Retrieve a specific parking lot by ID
       const parkingSpot = await ParkingSpot.findOne({ id: parseInt(id) });
       if (!parkingSpot) return new Response(JSON.stringify({ message: 'Parking spot not found' }), { status: 404 });
       return new Response(JSON.stringify(parkingSpot), { status: 200 });
@@ -22,7 +19,6 @@ export async function GET(req, { params }) {
 
     let query = {};
 
-    // Apply filters based on query parameters
     if (disponibilita) {
       query.disponibilita = disponibilita;
     }
@@ -35,7 +31,6 @@ export async function GET(req, { params }) {
 
     if (lat && long) {
       query.disponibilita = 'libero';
-      // Find the 4 nearest parking lots
       const nearestSpots = await ParkingSpot.aggregate([
         {
           $geoNear: {
@@ -50,7 +45,6 @@ export async function GET(req, { params }) {
       return new Response(JSON.stringify(nearestSpots), { status: 200 });
     }
 
-    // Retrieve all parking lots with optional filters
     const parkingSpots = await ParkingSpot.find(query);
     return new Response(JSON.stringify(parkingSpots), { status: 200 });
   } catch (error) {
