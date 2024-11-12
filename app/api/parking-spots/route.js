@@ -39,7 +39,7 @@ export async function GET(req, { params }) {
             spherical: true,
           },
         },
-        { $limit: 4 },
+        { $limit: 5 },
         { $match: query },
       ]);
       return new Response(JSON.stringify(nearestSpots), { status: 200 });
