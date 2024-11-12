@@ -6,6 +6,7 @@ let isConnected = false;
 export const connectToDB = async () => {
   mongoose.set("strictQuery", true);
 
+  // Check if already connected to avoid reconnecting
   if (isConnected) {
     console.log("Already connected to the database");
     return;
@@ -13,9 +14,10 @@ export const connectToDB = async () => {
 
   try {
     await mongoose.connect(process.env.MONGODB_URI, {
-      dbName: "drivenfind",
+      dbName: "drivenfind"
     });
 
+    // Set isConnected to true after a successful connection
     isConnected = true;
     console.log("Database connected successfully!");
   } catch (error) {

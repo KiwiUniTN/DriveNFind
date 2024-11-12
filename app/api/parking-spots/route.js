@@ -1,0 +1,59 @@
+import { connectToDB } from '../../lib/database';
+import ParkingSpot from '../../models/ParkingSpot';
+
+export async function GET(req, { params }) {
+  await connectToDB();
+
+  // Parse query parameters from the request
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get('id');
+  const lat = searchParams.get('lat');
+  const long = searchParams.get('long');
+  const disponibilita = searchParams.get('disponibilita');
+  const regolamento = searchParams.get('regolamento');
+
+  try {
+    if (id) {
+      // Retrieve a specific parking lot by ID
+      const parkingSpot = await ParkingSpot.findOne({ id: parseInt(id) });
+      if (!parkingSpot) return new Response(JSON.stringify({ message: 'Parking spot not found' }), { status: 404 });
+      return new Response(JSON.stringify(parkingSpot), { status: 200 });
+    }
+
+    let query = {};
+
+    // Apply filters based on query parameters
+    if (disponibilita) {
+      query.disponibilita = disponibilita;
+    }
+
+    if (regolamento) {
+      query.regolamento = regolamento;
+    }
+
+
+
+    if (lat && long) {
+      query.disponibilita = 'libero';
+      // Find the 4 nearest parking lots
+      const nearestSpots = await ParkingSpot.aggregate([
+        {
+          $geoNear: {
+            near: { type: 'Point', coordinates: [parseFloat(long), parseFloat(lat)] },
+            distanceField: 'distance',
+            spherical: true,
+          },
+        },
+        { $limit: 4 },
+        { $match: query },
+      ]);
+      return new Response(JSON.stringify(nearestSpots), { status: 200 });
+    }
+
+    // Retrieve all parking lots with optional filters
+    const parkingSpots = await ParkingSpot.find(query);
+    return new Response(JSON.stringify(parkingSpots), { status: 200 });
+  } catch (error) {
+    return new Response(JSON.stringify({ message: 'Server error', error: error.message }), { status: 500 });
+  }
+}
