@@ -1,26 +1,23 @@
 import jwt from 'jsonwebtoken';
+import { NextResponse } from 'next/server';
 
 export function authorizeRole(allowedRoles) {
-  return (req, res, next) => {
-    //Prendo il token dall'header della richiesta
-    const token = req.headers.authorization?.split(' ')[1];
-    //Se non c'è il token, rispondo con un errore 401
+  return async (req) => {
+    const token = req.headers.get('authorization')?.split(' ')[1];
     if (!token) {
-      return res.status(401).json({ message: 'Authorization token required' });
+      return NextResponse.json({ message: 'Authorization token required' }, { status: 401 });
     }
-    //Verifico il token
+
     try {
-      //Decodifico il token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      //Se il ruolo dell'utente non è tra quelli consentiti, rispondo con un errore 403
       if (!allowedRoles.includes(decoded.role)) {
-        return res.status(403).json({ message: 'Forbidden - insufficient permissions' });
+        return NextResponse.json({ message: 'Forbidden - insufficient permissions' }, { status: 403 });
       }
-      //Altrimenti, attacco le informazioni dell'utente alla richiesta e passo alla funzione successiva
+
       req.user = decoded;
-      next();
+      return true;  // Authorization success
     } catch (error) {
-      res.status(401).json({ message: 'Invalid token' });
+      return NextResponse.json({ message: 'Invalid token' }, { status: 401 });
     }
   };
 }
