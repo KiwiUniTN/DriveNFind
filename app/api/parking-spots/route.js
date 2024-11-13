@@ -28,7 +28,7 @@ export async function GET(req, { params }) {
     }
 
 
-
+    //Se le API fornisce meno di 4 parcheggi significa che non ci sono 4 parcheggi LIBERI in un raggio di 5km
     if (lat && long) {
       query.disponibilita = 'libero';
       const nearestSpots = await ParkingSpot.aggregate([
@@ -37,10 +37,11 @@ export async function GET(req, { params }) {
             near: { type: 'Point', coordinates: [parseFloat(long), parseFloat(lat)] },
             distanceField: 'distance',
             spherical: true,
+            maxDistance: 1000  
           },
         },
-        { $limit: 5 },
         { $match: query },
+        { $limit: 4 },
       ]);
       return new Response(JSON.stringify(nearestSpots), { status: 200 });
     }

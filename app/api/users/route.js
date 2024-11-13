@@ -1,6 +1,4 @@
-import { connectToDB } from '../../lib/database';
-import User from '../../models/User';
-import { authorizeRole } from '../../middleware/auth';
+import { authorizeRole } from '../../middleware/auth.js';
 
 export async function GET(req) {
     
