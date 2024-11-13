@@ -37,7 +37,7 @@ export async function GET(req, { params }) {
             near: { type: 'Point', coordinates: [parseFloat(long), parseFloat(lat)] },
             distanceField: 'distance',
             spherical: true,
-            maxDistance:5000  
+            maxDistance: 1000  
           },
         },
         { $match: query },

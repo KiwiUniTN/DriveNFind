@@ -1,16 +1,13 @@
-import { connectToDB } from '../../lib/database';
-import User from '../../models/User';
-import { authorizeRole } from '../../middleware/auth';
+import { authorizeRole } from '../../middleware/auth.js';
 
 export async function GET(req) {
-  const isAuthorized = await authorizeRole(['admin'])(req);
-  if (isAuthorized !== true) return isAuthorized;  // If authorization fails, return the error response
-
-  try {
-    await connectToDB();
-    const users = await User.find({});
-    return NextResponse.json(users, { status: 200 });
-  } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  const authorizationResult = await authorizeRole(['admin'])(req);
+  
+  // If authorizationResult is a Response, return it as an error
+  if (authorizationResult instanceof Response) {
+    return authorizationResult; // Error response (401 or 403)
   }
+
+  // If authorization was successful, proceed with the handler
+  return new Response(JSON.stringify({ message: 'Success' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
 }
