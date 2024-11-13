@@ -10,6 +10,8 @@ export function authorizeRole(allowedRoles) {
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log(decoded.username)
+
       if (!allowedRoles.includes(decoded.role)) {
         return NextResponse.json({ message: 'Forbidden - insufficient permissions' }, { status: 403 });
       }
