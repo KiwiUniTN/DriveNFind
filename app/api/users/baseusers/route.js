@@ -46,18 +46,15 @@ export async function GET(req) {
 
 export async function POST(req) {
   // Parse the JSON body
-  const { username, password, role } = await req.json();
+  const { username, password } = await req.json();
 
   // Basic input validation
-  if (!username || !password || !role) {
+  if (!username || !password) {
     return Response.json({ message: 'Missing required fields' }, { status: 400 });
   }
 
-  if (role !== 'baseuser') {
-    return Response.json({ message: 'Only baseuser role is allowed for new users' }, { status: 400 });
-  }
-
   try {
+    await connectToDB();
     // Check if the username already exists
     const existingUser = await User.findByUsername(username);
     if (existingUser) {
@@ -82,5 +79,84 @@ export async function POST(req) {
   } catch (error) {
     console.error('Error creating user:', error);
     return Response.json({ message: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function DELETE(req) {
+  try {
+    const { username: targetUsername } = await req.json(); // Get the username to delete from the request body
+    console.log(targetUsername)
+    // Authorize the request
+    const authResult = await authorize(req); // Assume this returns { authorized, user }
+    if (!authResult.authorized) {
+      return authResult.response; // Return error response if unauthorized
+    }
+
+    const { user } = authResult; // The authenticated user
+    const { username: currentUsername, role: currentUserRole } = user;
+
+    await connectToDB();
+
+    // Allow base users to delete their own account
+    if (currentUserRole === 'baseuser' && targetUsername !== null) {
+      return Response.json(
+        { message: 'You can only delete your own account.' },
+        { status: 403 }
+      );
+    }
+
+    // Allow admins to delete any baseuser
+    if (currentUserRole === 'admin') {
+      if (!targetUsername) {
+        return Response.json(
+          { message: "You don't provide any username to delete" },
+          { status: 403 }
+        );
+      }
+      const userToDelete = await User.findOne({ username: targetUsername });
+
+      if (!userToDelete) {
+        return Response.json(
+          { message: 'User not found.' },
+          { status: 404 }
+        );
+      }
+
+      if (userToDelete.role !== 'baseuser') {
+        return Response.json(
+          { message: 'Admins can only delete base users.' },
+          { status: 403 }
+        );
+      }
+
+      // Delete the user
+      await User.deleteOne({ username: targetUsername });
+
+      return Response.json(
+        { message: `User ${targetUsername} deleted successfully.` },
+        { status: 200 }
+      );
+    }
+
+    // If the current user is not an admin and the request is invalid
+    if (currentUserRole === 'baseuser') {
+      // Allow the user to delete their own account
+      await User.deleteOne({ username: currentUsername });
+      return Response.json(
+        { message: 'Your account has been deleted successfully.' },
+        { status: 200 }
+      );
+    }
+
+    return Response.json(
+      { message: 'Operation not allowed.' },
+      { status: 403 }
+    );
+  } catch (error) {
+    console.error('Error processing DELETE request:', error);
+    return Response.json(
+      { message: 'Internal server error.' },
+      { status: 500 }
+    );
   }
 }

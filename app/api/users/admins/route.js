@@ -51,41 +51,100 @@ export async function POST(req) {
     }
   
     // Parse the JSON body
-    const { username, password, role } = await req.json();
+    const { username:newUsername, password } = await req.json();
   
     // Basic input validation
-    if (!username || !password || !role) {
+    if (!newUsername || !password) {
       return Response.json({ message: 'Missing required fields' }, { status: 400 });
     }
-  
-    if (role !== 'admin') {
-      return Response.json({ message: 'Only admin role can be created via this endpoint' }, { status: 400 });
-    }
-  
+  await connectToDB();
     try {
       // Check if the username already exists
-      const existingUser = await User.findByUsername(username);
+      
+      const existingUser = await User.findByUsername(newUsername);
       if (existingUser) {
         return Response.json({ message: 'Username already taken' }, { status: 400 });
       }
   
       // Hash the password
       const hashedPassword = await bcrypt.hash(password, 10); // Salt rounds = 10
-  
+      
       // Create a new user with the 'admin' role
       const newUser = new User({
-        username,
+        username: newUsername,
         password: hashedPassword,
         role: 'admin', // Set the role to 'admin'
       });
-  
+        
       // Save the new user to the database
       await newUser.save();
-  
+      console.log("qui")
       // Return the success response
       return Response.json({ message: 'Admin user created successfully', user: newUser }, { status: 201 });
     } catch (error) {
       console.error('Error creating admin user:', error);
       return Response.json({ message: 'Internal server error' }, { status: 500 });
+    }
+  }
+
+  export async function DELETE(req) {
+    try {
+      const { username: targetUsername } = await req.json(); // Parse the username to delete from the request body
+  
+      // Authorize the request
+      const authResult = await authorizeRole(['admin'])(req); // Assume this returns { authorized, user }
+      if (!authResult.authorized) {
+        return authResult.response; // Return error response if unauthorized
+      }
+  
+      const { user } = authResult; // The authenticated user
+      const { username: currentUsername, role: currentUserRole } = user;
+  
+      await connectToDB();
+
+      // Admins can delete their own account
+      if (targetUsername === null) {
+        // Check if there are other admins before deletion
+        const remainingAdmins = await User.countDocuments({ role: 'admin' });
+        if (remainingAdmins <= 1) {
+          return Response.json(
+            { message: 'At least one admin must remain in the system.' },
+            { status: 403 }
+          );
+        }
+  
+        // Delete the admin's own account
+        await User.deleteOne({ username: currentUsername });
+        return Response.json(
+          { message: 'Your account has been deleted successfully.' },
+          { status: 200 }
+        );
+      }
+  
+      // Fetch the user to delete
+      const userToDelete = await User.findOne({ username: targetUsername });
+  
+      if (!userToDelete) {
+        return Response.json(
+          { message: 'User not found.' },
+          { status: 404 }
+        );
+      }
+  
+      // Admins can delete other admins
+      if (userToDelete.role === 'admin') {
+        // Delete the target admin
+        await User.deleteOne({ username: targetUsername });
+        return Response.json(
+          { message: `Admin user ${targetUsername} deleted successfully.` },
+          { status: 200 }
+        );
+      }
+    } catch (error) {
+      console.error('Error processing DELETE request:', error);
+      return Response.json(
+        { message: 'Internal server error.' },
+        { status: 500 }
+      );
     }
   }
