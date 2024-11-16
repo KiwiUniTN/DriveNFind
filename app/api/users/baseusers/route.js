@@ -1,6 +1,7 @@
 import { connectToDB } from '../../../lib/database';
 import User from '../../../models/User';
 import { authorize, authorizeRole } from '../../../middleware/auth';
+import bcrypt from 'bcrypt'; 
 
 export async function GET(req) {
   const authResult = await authorize(req);
@@ -39,5 +40,47 @@ export async function GET(req) {
     return Response.json(baseUsers, { status: 200 });
   } catch (error) {
     return Response.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+
+export async function POST(req) {
+  // Parse the JSON body
+  const { username, password, role } = await req.json();
+
+  // Basic input validation
+  if (!username || !password || !role) {
+    return Response.json({ message: 'Missing required fields' }, { status: 400 });
+  }
+
+  if (role !== 'baseuser') {
+    return Response.json({ message: 'Only baseuser role is allowed for new users' }, { status: 400 });
+  }
+
+  try {
+    // Check if the username already exists
+    const existingUser = await User.findByUsername(username);
+    if (existingUser) {
+      return Response.json({ message: 'Username already taken' }, { status: 400 });
+    }
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10); // Salt rounds = 10
+
+    // Create a new user
+    const newUser = new User({
+      username,
+      password: hashedPassword,
+      role: 'baseuser', // Ensure the role is set to 'baseuser'
+    });
+
+    // Save the new user to the database
+    await newUser.save();
+
+    // Return the success response
+    return Response.json({ message: 'User created successfully', user: newUser }, { status: 201 });
+  } catch (error) {
+    console.error('Error creating user:', error);
+    return Response.json({ message: 'Internal server error' }, { status: 500 });
   }
 }
