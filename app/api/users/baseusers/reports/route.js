@@ -1,31 +1,34 @@
 import { authorizeRole } from "@/app/middleware/auth";
 import Report  from "@/app/models/Report";
-
+/* crea un report dato nel body della richiesta 
+    "parkingLotId": id del parcheggio,
+    "description": "descrizione del problema",
+    "status": "In sospeso",
+    "imageUrl": "path/to/image" */
 export async function POST(req, res) {
-    const body = await req.json();
-
-
     // Authenticate user based on the provided token
+    let userAuth;
+    const body = await req.json();
     try {
-        const isUser = await authorizeRole(["baseuser"])(req);
-        if (isUser !== true) {
-            throw new Error("Unauthorized");
-        }
+        userAuth = await authorizeRole(["baseuser"])(req);
+        if (userAuth.authorized !== true) {
+					throw new Error("Unauthorized");
+				}
     } catch (error) {
         return new Response(JSON.stringify({ message: error.message }), { status: 401 });
     }
-    if (req.user.role === "admin") {
+    if (userAuth.user.role === "admin") {
         return new Response(JSON.stringify({ message: 'Admin users cannot create reports' }), { status: 403 });
     }
-    return new Response(JSON.stringify({ message: body.parkingLotId }), { status: 403 });
+    
     const newReport = {
-			username: req.user.username,
+			username: userAuth.user.username,
 			parkingLotId: body.parkingLotId,
 			description: body.description,
 			status: body.status,
 			imageUrl: body.imageUrl,
-};
-	return new Response(JSON.stringify(newReport), { status: 200 });
+		};
+	
      try {
 			const createdReport = await Report.create(newReport);
 			return new Response(JSON.stringify(createdReport), { status: 201 });
