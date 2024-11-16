@@ -1,19 +1,16 @@
 import jwt from 'jsonwebtoken';
-import { NextResponse } from 'next/server';
 
 export function authorizeRole(allowedRoles) {
   return async (req) => {
     const token = req.headers.get('authorization')?.split(' ')[1];
     if (!token) {
-      return Response.json({ message: 'Authorization token required' }, { status: 401 });
+      return Response.json({ message: 'Authorization token required' }, { status: 401 });//Throw error if no token is present
     }
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      console.log(decoded.username)
-
       if (!allowedRoles.includes(decoded.role)) {
-        return Response.json({ message: 'Forbidden - insufficient permissions' }, { status: 403 });
+        return Response.json({ message: 'Forbidden - insufficient permissions' }, { status: 403 });//Throw error if user does not have the required role
       }
 
       req.user = decoded;
