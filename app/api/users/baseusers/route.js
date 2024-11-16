@@ -17,17 +17,18 @@ export async function GET(req) {
   try {
     await connectToDB();
     const { searchParams } = new URL(req.url);
-    const getAllFlag = 'true' === searchParams.get('getAll');
-    console.log(getAllFlag)
-    let baseUsers;
+    const username_to_search = searchParams.get('username');
     
-    if (getAllFlag && getAllFlag==true && role == 'admin') {
+    let baseUsers;
+
+    if (username_to_search && role == 'admin') {
+      baseUsers = await User.findByUsername(username_to_search);
+    } else if (!username_to_search && role == 'admin') {
+      baseUsers = await User.findByRole('baseuser');
+    } else if (!username_to_search && role == 'baseuser') {
+      
       baseUsers = await User.findByUsername(username);
-      console.log('ciao')
-    } else if ((!getAllFlag || (getAllFlag && getAllFlag == false)) && role == 'admin') {
-      baseUsers = await User.findByRole('admin');
-      console.log('hey')
-    } else if (role == 'baseuser') {
+    }else if (username_to_search && role == 'baseuser') {
       return Response.json({ message: 'Forbidden - insufficient permissions' }, { status: 403 })
     }
 

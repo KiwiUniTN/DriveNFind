@@ -12,7 +12,7 @@ export async function GET(req) {
   //const { user } = authResult;
   //const { username, role } = user;
 
-  console.log(username, role); // Logs username and role for debugging
+  // console.log(username, role); // Logs username and role for debugging
 
   try {
     await connectToDB();
