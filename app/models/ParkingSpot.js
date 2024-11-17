@@ -1,11 +1,7 @@
 import mongoose from 'mongoose';
 
 const ParkingspotSchema = new mongoose.Schema({
-  id: {
-    type: Number,
-    unique: true,
-    required: true,
-  },
+  
   nome: {
     type: String,
     required: true,

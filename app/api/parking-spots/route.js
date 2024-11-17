@@ -28,7 +28,7 @@ export async function GET(req, { params }) {
     }
 
 
-    //Se le API fornisce meno di 4 parcheggi significa che non ci sono 4 parcheggi LIBERI in un raggio di 5km
+    //Se le API fornisce meno di 4 parcheggi significa che non ci sono 4 parcheggi LIBERI in un raggio di 1km
     if (lat && long) {
       query.disponibilita = 'libero';
       const nearestSpots = await ParkingSpot.aggregate([
