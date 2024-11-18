@@ -4,10 +4,17 @@ export function authorize(req) {
   const token = req.headers.get('authorization')?.split(' ')[1];
   console.log('Authorization token:', token);
 
-  if (!token) {
-    // If no token is provided, return an error response
-    return { authorized: false, response: Response.json({ message: 'Authorization token required' }, { status: 401 }) };
-  }
+  if (!token || token === undefined) {
+		// If no token is provided, return an error response
+    console.error("No authorization token provided");
+		return {
+			authorized: false,
+			response: Response.json(
+				{ message: "Authorization token required" },
+				{ status: 401 }
+			),
+		};
+	}
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);

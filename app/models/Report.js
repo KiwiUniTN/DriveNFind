@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 
 const ReportSchema = new mongoose.Schema({
-  id: { type: Number, unique: true, required: true },
   username: { type: String, ref: 'User', required: true },
   parkingLotId: { type: Number, ref: 'ParkingSpot', required: true },
   description: { type: String, required: true },
