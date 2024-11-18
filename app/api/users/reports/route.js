@@ -1,4 +1,4 @@
-import { authorizeRole } from "@/app/middleware/auth";
+import { authorize, authorizeRole } from "@/app/middleware/auth";
 import Report from "@/app/models/Report";
 import { connectToDB } from "../../../lib/database";
 //TODO:modificarfe la documentazione
@@ -9,40 +9,38 @@ export async function GET(req) {
 		const url = new URL(req.url);
 		const id = url.searchParams.get("reportId");
 		await connectToDB();
-		const userAuth = await authorizeRole(["baseuser"])(req);
+		const userAuth =  authorize(req);
     console.log(userAuth);
-		if (id) {
-			// if id is present return the report with that id
-			const report = await Report.findById(id);
-			if (!report) {
-				throw new Error("report not found");
-			} else {
-				return new Response(JSON.stringify(report), { status: 200 });
-			}
-		}
 
 		if (!userAuth.authorized) {
-			console.log("sono qui");
 			throw new Error("you are not authorized to access this resource");
-		} else if (userAuth.user.role === "admin") {
-			console.log("sono qui1");
-
-			throw new Error("admin can't access the single person reports");
-		} else {
-			console.log("sono qui2");
-      console.log(userAuth.user.username);
-      await connectToDB();
-			const reports = await Report.find({ username: userAuth.user.username });
-      console.log(reports);
-			if (!reports || reports.length === 0) {
-				throw new Error("no reports found");
-			} else {
-				return new Response(JSON.stringify(reports), { status: 200 });
-			}
 		}
+    if (id) {
+      // if id is present return the report with that id
+      const report = await Report.findById(id);
+      if (!report) {
+        throw new Error("report not found");
+      } else {
+        return new Response(JSON.stringify(report), { status: 200 });
+      }
+    }
+    if (userAuth.user.role === "admin") {
+      // admin can see all reports
+      const reports = await Report.find();
+      return new Response(JSON.stringify(reports), { status: 200 });  
+		} 
+
+    // base users can see only their
+    const reports = await Report.find({ username: userAuth.user.username });
+    if (!reports || reports.length === 0) {
+      throw new Error("no reports found");
+    } else {
+      return new Response(JSON.stringify(reports), { status: 200 });
+    }
+		
 	} catch (error) {
 		return new Response(
-			JSON.stringify({ "error in the request of the report": error }),
+			JSON.stringify({ "error in the request of the report": error.message  }),
 			{ status: 500 }
 		);
 	}
@@ -64,9 +62,6 @@ export async function PATCH(req) {
         throw new Error("report not found");
       } else {
         const body = await req.json();
-        console.log({"body" : body , 
-        "report" : report ,
-        });
         if (userAuth.user.role === "baseuser") {
           if (body.status) {
             throw new Error("base users can't modify the status");

@@ -12,7 +12,6 @@ export async function POST(req, res) {
 	try {
 		userAuth= await validateUser(req);
 		body = await req.json();
-        console.log("userAuth" ,userAuth)
 	} catch (error) {
 		return new Response(JSON.stringify({ message: error.message }), {
 			status: 403,
@@ -68,9 +67,6 @@ async function validateUser(req) {
 	const userAuth = await authorizeRole(["baseuser"])(req);
 	if (!userAuth.authorized) {
 		throw new Error("User not authorized");
-	}
-	if (userAuth.user.role === "admin") {
-		throw new Error("Admins cannot create reports or delete them");
 	}
 	return userAuth;
 }
