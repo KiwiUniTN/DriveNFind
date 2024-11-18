@@ -1,9 +1,9 @@
 import { authorize, authorizeRole } from "@/app/middleware/auth";
 import Report from "@/app/models/Report";
 import { connectToDB } from "../../../lib/database";
+import { SERVER_PROPS_GET_INIT_PROPS_CONFLICT } from "next/dist/lib/constants";
 //TODO:modificarfe la documentazione
 // se il reportId è presente ritorno il report con quell'id altrimenti ritorno tutti i report dell'utente se baseuser. Se admin ritorno tutti i report
-
 export async function GET(req) {
 	try {
 		const url = new URL(req.url);
@@ -13,7 +13,7 @@ export async function GET(req) {
     console.log(userAuth);
 
 		if (!userAuth.authorized) {
-			throw new Error("you are not authorized to access this resource");
+			return userAuth.response;
 		}
     if (id) {
       // if id is present return the report with that id
@@ -21,12 +21,18 @@ export async function GET(req) {
       if (!report) {
         throw new Error("report not found");
       } else {
+        console.log(report);
+        if (report.username != userAuth.user.username) {
+          throw new Error("a user can't access report made by other user")
+        }
         return new Response(JSON.stringify(report), { status: 200 });
       }
     }
     if (userAuth.user.role === "admin") {
       // admin can see all reports
       const reports = await Report.find();
+      console.log(reports);
+
       return new Response(JSON.stringify(reports), { status: 200 });  
 		} 
 
@@ -53,9 +59,9 @@ export async function PATCH(req) {
     const url = new URL(req.url);
     const id = url.searchParams.get("reportId");
     await connectToDB();
-    const userAuth = await authorizeRole(["baseuser","admin"])(req);
+    const userAuth = authorize(req);
     if (!userAuth.authorized) {
-      throw new Error("you are not authorized to access this resource");
+      return userAuth.response;
     } else {
       const report = await Report.findById(id);
       if (!report) {
