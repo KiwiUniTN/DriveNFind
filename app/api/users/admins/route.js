@@ -4,7 +4,7 @@ import { authorize, authorizeRole } from '../../../middleware/auth';
 import bcrypt from 'bcrypt'; 
 
 export async function GET(req) {
-  const authResult = await authorize(req);
+  const authResult = authorize(req);
 
   if (!authResult.authorized) {
     return authResult.response; // Return the error response from the middleware
@@ -12,22 +12,16 @@ export async function GET(req) {
   //Destrutturare l'oggetto user per ottenere username e ruolo
   const { user } = authResult;
   const { username, role } = user;
-
-  console.log(username, role); // Logs username and role for debugging
-
   try {
     await connectToDB();
     const { searchParams } = new URL(req.url);
     const getAllFlag = 'true' === searchParams.get('getAll');
-    console.log(getAllFlag)
     let baseUsers;
 
-    if (getAllFlag && getAllFlag==true && role == 'admin') {
-      baseUsers = await User.findByUsername(username);
-      console.log('ciao')
-    } else if ((!getAllFlag || (getAllFlag && getAllFlag == false)) && role == 'admin') {
-      baseUsers = await User.findByRole('admin');
-      console.log('hey')
+    if (!getAllFlag && role == 'admin') {
+      baseUsers = await User.findByUsername(username,{password:0});
+    } else if (getAllFlag && role == 'admin') {
+      baseUsers = await User.findByRole('admin',{password:0});
     } else if (role == 'baseuser') {
       return Response.json({ message: 'Forbidden - insufficient permissions' }, { status: 403 })
     }
@@ -78,7 +72,6 @@ export async function POST(req) {
         
       // Save the new user to the database
       await newUser.save();
-      console.log("qui")
       // Return the success response
       return Response.json({ message: 'Admin user created successfully', user: newUser }, { status: 201 });
     } catch (error) {
