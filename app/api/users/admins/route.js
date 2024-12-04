@@ -4,7 +4,7 @@ import { authorize, authorizeRole } from '../../../middleware/auth';
 import bcrypt from 'bcrypt'; 
 
 export async function GET(req) {
-  const authResult = await authorize(req);
+  const authResult = authorize(req);
 
   if (!authResult.authorized) {
     return authResult.response; // Return the error response from the middleware
@@ -12,22 +12,16 @@ export async function GET(req) {
   //Destrutturare l'oggetto user per ottenere username e ruolo
   const { user } = authResult;
   const { username, role } = user;
-
-  console.log(username, role); // Logs username and role for debugging
-
   try {
     await connectToDB();
     const { searchParams } = new URL(req.url);
     const getAllFlag = 'true' === searchParams.get('getAll');
-    console.log(getAllFlag)
     let baseUsers;
 
-    if (getAllFlag && getAllFlag==true && role == 'admin') {
-      baseUsers = await User.findByUsername(username);
-      console.log('ciao')
-    } else if ((!getAllFlag || (getAllFlag && getAllFlag == false)) && role == 'admin') {
-      baseUsers = await User.findByRole('admin');
-      console.log('hey')
+    if (!getAllFlag && role == 'admin') {
+      baseUsers = await User.findByUsername(username,{password:0});
+    } else if (getAllFlag && role == 'admin') {
+      baseUsers = await User.findByRole('admin',{password:0});
     } else if (role == 'baseuser') {
       return Response.json({ message: 'Forbidden - insufficient permissions' }, { status: 403 })
     }
@@ -78,7 +72,6 @@ export async function POST(req) {
         
       // Save the new user to the database
       await newUser.save();
-      console.log("qui")
       // Return the success response
       return Response.json({ message: 'Admin user created successfully', user: newUser }, { status: 201 });
     } catch (error) {
@@ -87,64 +80,65 @@ export async function POST(req) {
     }
   }
 
-  export async function DELETE(req) {
-    try {
-      const { username: targetUsername } = await req.json(); // Parse the username to delete from the request body
-  
-      // Authorize the request
-      const authResult = await authorizeRole(['admin'])(req); // Assume this returns { authorized, user }
-      if (!authResult.authorized) {
-        return authResult.response; // Return error response if unauthorized
-      }
-  
-      const { user } = authResult; // The authenticated user
-      const { username: currentUsername, role: currentUserRole } = user;
-  
-      await connectToDB();
+export async function DELETE(req) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const targetUsername = searchParams.get('targetUsername');
 
-      // Admins can delete their own account
-      if (targetUsername === null) {
-        // Check if there are other admins before deletion
-        const remainingAdmins = await User.countDocuments({ role: 'admin' });
-        if (remainingAdmins <= 1) {
-          return Response.json(
-            { message: 'At least one admin must remain in the system.' },
-            { status: 403 }
-          );
-        }
-  
-        // Delete the admin's own account
-        await User.deleteOne({ username: currentUsername });
+    // Authorize the request
+    const authResult = await authorizeRole(['admin'])(req); // Assume this returns { authorized, user }
+    if (!authResult.authorized) {
+      return authResult.response; // Return error response if unauthorized
+    }
+
+    const { user } = authResult; // The authenticated user
+    const { username: currentUsername} = user;
+
+    await connectToDB();
+
+    // Admins can delete their own account
+    if (targetUsername === null) {
+      // Check if there are other admins before deletion
+      const remainingAdmins = await User.countDocuments({ role: 'admin' });
+      if (remainingAdmins <= 1) {
         return Response.json(
-          { message: 'Your account has been deleted successfully.' },
-          { status: 200 }
+          { message: 'At least one admin must remain in the system.' },
+          { status: 403 }
         );
       }
-  
-      // Fetch the user to delete
-      const userToDelete = await User.findOne({ username: targetUsername });
-  
-      if (!userToDelete) {
-        return Response.json(
-          { message: 'User not found.' },
-          { status: 404 }
-        );
-      }
-  
-      // Admins can delete other admins
-      if (userToDelete.role === 'admin') {
-        // Delete the target admin
-        await User.deleteOne({ username: targetUsername });
-        return Response.json(
-          { message: `Admin user ${targetUsername} deleted successfully.` },
-          { status: 200 }
-        );
-      }
-    } catch (error) {
-      console.error('Error processing DELETE request:', error);
+
+      // Delete the admin's own account
+      await User.deleteOne({ username: currentUsername });
       return Response.json(
-        { message: 'Internal server error.' },
-        { status: 500 }
+        { message: 'Your account has been deleted successfully.' },
+        { status: 200 }
       );
     }
+
+    // Fetch the user to delete
+    const userToDelete = await User.findOne({ username: targetUsername });
+
+    if (!userToDelete) {
+      return Response.json(
+        { message: 'User not found.' },
+        { status: 404 }
+      );
+    }
+
+    // Admins can delete other admins
+    if (userToDelete.role === 'admin') {
+      // Delete the target admin
+      await User.deleteOne({ username: targetUsername });
+      return Response.json(
+        { message: `Admin user ${targetUsername} deleted successfully.` },
+        { status: 200 }
+      );
+    }
+  } catch (error) {
+    console.error('Error processing DELETE request:', error);
+    return Response.json(
+      { message: 'Internal server error.' },
+      { status: 500 }
+    );
   }
+}

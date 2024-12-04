@@ -1,10 +1,10 @@
 import { connectToDB } from '../../../lib/database';
 import User from '../../../models/User';
-import { authorize, authorizeRole } from '../../../middleware/auth';
+import { authorize } from '../../../middleware/auth';
 import bcrypt from 'bcrypt'; 
 
 export async function GET(req) {
-  const authResult = await authorize(req);
+  const authResult = authorize(req);
 
   if (!authResult.authorized) {
     return authResult.response; // Return the error response from the middleware
@@ -12,9 +12,6 @@ export async function GET(req) {
   //Destrutturare l'oggetto user per ottenere username e ruolo
   const { user } = authResult;
   const { username, role } = user;
-
-  console.log(username, role); // Logs username and role for debugging
-
   try {
     await connectToDB();
     const { searchParams } = new URL(req.url);
@@ -23,12 +20,11 @@ export async function GET(req) {
     let baseUsers;
 
     if (username_to_search && role == 'admin') {
-      baseUsers = await User.findByUsername(username_to_search);
+      baseUsers = await User.findByUsername(username_to_search,{password:0});
     } else if (!username_to_search && role == 'admin') {
-      baseUsers = await User.findByRole('baseuser');
+      baseUsers = await User.findByRole('baseuser',{password:0});
     } else if (!username_to_search && role == 'baseuser') {
-      
-      baseUsers = await User.findByUsername(username);
+      baseUsers = await User.findByUsername(username,{password:0});
     }else if (username_to_search && role == 'baseuser') {
       return Response.json({ message: 'Forbidden - insufficient permissions' }, { status: 403 })
     }
@@ -84,10 +80,10 @@ export async function POST(req) {
 
 export async function DELETE(req) {
   try {
-    const { username: targetUsername } = await req.json(); // Get the username to delete from the request body
-    console.log(targetUsername)
+    const { searchParams } = new URL(req.url);
+    const targetUsername = searchParams.get('targetUsername');
     // Authorize the request
-    const authResult = await authorize(req); // Assume this returns { authorized, user }
+    const authResult = authorize(req); // Assume this returns { authorized, user }
     if (!authResult.authorized) {
       return authResult.response; // Return error response if unauthorized
     }
