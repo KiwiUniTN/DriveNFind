@@ -88,63 +88,61 @@ export async function POST(req) {
   }
 
   export async function DELETE(req) {
-    try {
-      const { username: targetUsername } = await req.json(); // Parse the username to delete from the request body
-  
-      // Authorize the request
-      const authResult = await authorizeRole(['admin'])(req); // Assume this returns { authorized, user }
-      if (!authResult.authorized) {
-        return authResult.response; // Return error response if unauthorized
-      }
-  
-      const { user } = authResult; // The authenticated user
-      const { username: currentUsername, role: currentUserRole } = user;
-  
-      await connectToDB();
+		try {
+			const { searchParams } = new URL(req.url);
+			const targetUsername = searchParams.get("targetUsername");
 
-      // Admins can delete their own account
-      if (targetUsername === null) {
-        // Check if there are other admins before deletion
-        const remainingAdmins = await User.countDocuments({ role: 'admin' });
-        if (remainingAdmins <= 1) {
-          return Response.json(
-            { message: 'At least one admin must remain in the system.' },
-            { status: 403 }
-          );
-        }
-  
-        // Delete the admin's own account
-        await User.deleteOne({ username: currentUsername });
-        return Response.json(
-          { message: 'Your account has been deleted successfully.' },
-          { status: 200 }
-        );
-      }
-  
-      // Fetch the user to delete
-      const userToDelete = await User.findOne({ username: targetUsername });
-  
-      if (!userToDelete) {
-        return Response.json(
-          { message: 'User not found.' },
-          { status: 404 }
-        );
-      }
-  
-      // Admins can delete other admins
-      if (userToDelete.role === 'admin') {
-        // Delete the target admin
-        await User.deleteOne({ username: targetUsername });
-        return Response.json(
-          { message: `Admin user ${targetUsername} deleted successfully.` },
-          { status: 200 }
-        );
-      }
-    } catch (error) {
-      console.error('Error processing DELETE request:', error);
-      return Response.json(
-        { message: 'Internal server error.' },
-        { status: 500 }
-      );
-    }
-  }
+			// Authorize the request
+			const authResult = await authorizeRole(["admin"])(req); // Assume this returns { authorized, user }
+			if (!authResult.authorized) {
+				return authResult.response; // Return error response if unauthorized
+			}
+
+			const { user } = authResult; // The authenticated user
+			const { username: currentUsername } = user;
+
+			await connectToDB();
+
+			// Admins can delete their own account
+			if (targetUsername === null) {
+				// Check if there are other admins before deletion
+				const remainingAdmins = await User.countDocuments({ role: "admin" });
+				if (remainingAdmins <= 1) {
+					return Response.json(
+						{ message: "At least one admin must remain in the system." },
+						{ status: 403 }
+					);
+				}
+
+				// Delete the admin's own account
+				await User.deleteOne({ username: currentUsername });
+				return Response.json(
+					{ message: "Your account has been deleted successfully." },
+					{ status: 200 }
+				);
+			}
+
+			// Fetch the user to delete
+			const userToDelete = await User.findOne({ username: targetUsername });
+
+			if (!userToDelete) {
+				return Response.json({ message: "User not found." }, { status: 404 });
+			}
+
+			// Admins can delete other admins
+			if (userToDelete.role === "admin") {
+				// Delete the target admin
+				await User.deleteOne({ username: targetUsername });
+				return Response.json(
+					{ message: `Admin user ${targetUsername} deleted successfully.` },
+					{ status: 200 }
+				);
+			}
+		} catch (error) {
+			console.error("Error processing DELETE request:", error);
+			return Response.json(
+				{ message: "Internal server error." },
+				{ status: 500 }
+			);
+		}
+	}
