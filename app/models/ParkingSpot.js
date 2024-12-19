@@ -53,7 +53,7 @@ const ParkingspotSchema = new mongoose.Schema({
   },
   disponibilita: {
     type: String,
-    enum: ['libero', 'occupato'],
+    enum: ['libero', 'occupato','in navigazione'],
     required: true,
   }
 });
