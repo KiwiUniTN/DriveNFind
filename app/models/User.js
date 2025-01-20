@@ -11,9 +11,9 @@ const UserSchema = new mongoose.Schema({
 });
 
 // Add static method to find users by role
-UserSchema.statics.findByRole = async function (role) {
+UserSchema.statics.findByRole = async function (role, projection = {}) {
   try {
-    return await this.find({ role });
+    return await this.find({ role }, projection);
   } catch (error) {
     console.error('Error finding users by role:', error);
     throw error;
@@ -21,9 +21,9 @@ UserSchema.statics.findByRole = async function (role) {
 };
 
 // Add static method to find a user by username
-UserSchema.statics.findByUsername = async function (username) {
+UserSchema.statics.findByUsername = async function (username, projection = {}) {
   try {
-    return await this.findOne({ username });
+    return await this.findOne({ username }, projection);
   } catch (error) {
     console.error('Error finding user by username:', error);
     throw error;

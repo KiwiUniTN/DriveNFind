@@ -17,7 +17,7 @@ export async function GET(req) {
 
   try {
     await connectToDB();
-    const users = await User.find({}); // Fetch users from the database
+    const users = await User.find({},'-password'); // Fetch users from the database
 
     return Response.json(users, { status: 200 });
   } catch (error) {
@@ -30,7 +30,7 @@ export async function PATCH(req) {
   const { username: targetUsername, newPassword, newRole } = await req.json();
   
   // Authorize the user
-  const authResult = await authorize(req);
+  const authResult = authorize(req);
   if (!authResult.authorized) {
     return authResult.response; // Unauthorized or forbidden
   }
