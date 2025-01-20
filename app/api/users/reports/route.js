@@ -10,8 +10,6 @@ export async function GET(req) {
 		const id = url.searchParams.get("reportId");
 		await connectToDB();
 		const userAuth =  authorize(req);
-    console.log(userAuth);
-
 		if (!userAuth.authorized) {
 			return userAuth.response;
 		}
@@ -19,11 +17,10 @@ export async function GET(req) {
       // if id is present return the report with that id
       const report = await Report.findById(id);
       if (!report) {
-        throw new Error("report not found");
+        throw new Error("Report not found");
       } else {
-        console.log(report);
         if (report.username != userAuth.user.username) {
-          throw new Error("a user can't access report made by other user")
+          throw new Error("A user can't access report made by other user")
         }
         return new Response(JSON.stringify(report), { status: 200 });
       }
@@ -31,22 +28,20 @@ export async function GET(req) {
     if (userAuth.user.role === "admin") {
       // admin can see all reports
       const reports = await Report.find();
-      console.log(reports);
-
       return new Response(JSON.stringify(reports), { status: 200 });  
 		} 
 
     // base users can see only their
     const reports = await Report.find({ username: userAuth.user.username });
     if (!reports || reports.length === 0) {
-      throw new Error("no reports found");
+      throw new Error("No reports found");
     } else {
       return new Response(JSON.stringify(reports), { status: 200 });
     }
 		
 	} catch (error) {
 		return new Response(
-			JSON.stringify({ "error in the request of the report": error.message  }),
+			JSON.stringify({ "message": error.message  }),
 			{ status: 500 }
 		);
 	}
@@ -65,35 +60,35 @@ export async function PATCH(req) {
     } else {
       const report = await Report.findById(id);
       if (!report) {
-        throw new Error("report not found");
+        return new Response({ message: 'Report not found' }, { status: 404 });
       } else {
         const body = await req.json();
         if (userAuth.user.role === "baseuser") {
           if (body.status) {
-            throw new Error("base users can't modify the status");
+            return Response.json({ message: 'Base users can\'t modify the status' }, { status: 403 });
           }
           const updatedReport = await Report.findByIdAndUpdate(id, body, {
             new: true,
           });
-          return new Response(JSON.stringify(updatedReport), { status: 200 });
+          return new Response({message: JSON.stringify(updatedReport)}, { status: 200 });
         } else if (userAuth.user.role === "admin") {
           if (body.description || body.imageUrl) {
-            throw new Error("admins can't modify the description and imageUrl");
+            return new Response({message: "Admins can't modify the description and imageUrl"}, { status: 403 });
           }
           if (!body.status) {
-            throw new Error("status is required");
+            return new Response ({message: "Status is required"}, { status: 400 });
           } else {
           const updatedReport = await Report.findByIdAndUpdate(id, body, {
 							new: true,
 						});
-            return new Response(JSON.stringify(updatedReport), { status: 200 });
+            return new Response({message: JSON.stringify(updatedReport)}, { status: 200 });
           }
         }
       }
     }
   } catch (error) {
     return new Response(
-      JSON.stringify({ "error in the modification of the report": error.message }),
+      JSON.stringify({ "message": error.message }),
       { status: 500 }
     );
   }

@@ -27,6 +27,7 @@ export async function POST(req) {
         }
         //Controllo se la password è corretta utilizzando la password in chiaro passata dall'utente su HTTPS e la password hashata con bcrypt salvata nel database
         const isPasswordCorrect = await bcrypt.compare(password, user.password);
+        console.log("Dopo bcrypt");
         //Se la password non è corretta, rispondo con un errore 401
         if (!isPasswordCorrect) {
             return new Response(
