@@ -13,9 +13,7 @@ export async function POST(req, res) {
 		userAuth= await validateUser(req);
 		body = await req.json();
 	} catch (error) {
-		return new Response(JSON.stringify({ message: error.message }), {
-			status: 403,
-		});
+		return new Response(JSON.stringify({ message: error.message }), {status: 403,});
 	}
 
 	const newReport = {
@@ -31,16 +29,14 @@ export async function POST(req, res) {
 		return new Response(JSON.stringify(createdReport), { status: 201 });
 	} catch (error) {
 		return new Response(
-			JSON.stringify({ message: `Report creation failed:${error.message}` }),
-			{ status: 500 }
-		);
+			JSON.stringify({ message: `Report creation failed:${error.message}` }),{ status: 500 });
 	}
 	
 }
 /* elimina una segnalazione dato l'Id messo nel body in questo modo {"id" : <id>} */
-export async function DELETE(req, res) {
-    
-    const body = await req.json();
+export async function DELETE(req) {
+    const { searchParams } = new URL(req.url);
+  	const id = searchParams.get('id');
     try {
         await validateUser(req);
     } catch (error) {
@@ -49,7 +45,7 @@ export async function DELETE(req, res) {
         });
     }
 
-	const deletionSuccess = await Report.findByIdAndDelete(body.id);
+	const deletionSuccess = await Report.findByIdAndDelete(id);
 	if (deletionSuccess) {
 		return new Response(
 			JSON.stringify({ message: "Report deleted successfully" }),
@@ -61,12 +57,10 @@ export async function DELETE(req, res) {
 		});
 	}
 }
-
-// controllo se l'utente è un baseuser
 async function validateUser(req) {
 	const userAuth = await authorizeRole(["baseuser"])(req);
 	if (!userAuth.authorized) {
-		throw new Error("User not authorized");
+		return Response.json({ message: "User not authorized" }, { status: 403 });
 	}
 	return userAuth;
 }
