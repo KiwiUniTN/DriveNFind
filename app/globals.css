@@ -9,8 +9,17 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --nero: #0c0c0c;
+    --bianco: #ededed;
+    --grigio:#424344;
+    --beige: #b3b9ac;
+    --rosso: #c1141a;
+    --marrone:#746b6b;
+    --grigioChiaro: #778888;
+    --azzurro: #6c949c;
+    --trasparente: #1c2424;
+    --azzurroChiaro: #5c6c74; 
+    --beigeChiaro: #94a4a2;
   }
 }
 
