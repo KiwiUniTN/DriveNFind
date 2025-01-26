@@ -1,8 +1,6 @@
-import dynamic from "next/dynamic";
-import ParkingMap from "./components/ParkingMap";
-import NavbarWrapper from "./components/NavbarWrapper";
+import Wrapper from "./components/Wrapper";
 
-export default async function Home() {
+export default  async function Home() {
 	//Fetcho i dati di tutti i parcheggio
 	let data = await fetch(
 		process.env.NEXT_PUBLIC_API_BASE_URL + "/api/parking-spots"
@@ -11,8 +9,7 @@ export default async function Home() {
 
 	return (
 		<div className='h-screen w-screen flex flex-col items-center justify-center bg-beigeChiaro'>
-			<NavbarWrapper className='h-1/6 w-screen' />
-			<ParkingMap parkingSpots={spots} />
+			<Wrapper spots={spots} />
 		</div>
 	);
 }

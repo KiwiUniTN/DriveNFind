@@ -1,9 +1,27 @@
 'use client';
 import React from "react";
 import Image from "next/image";
-import { SignedIn, SignedOut, SignIn, UserButton } from "@clerk/nextjs";
-
+import { SignedIn, SignedOut, SignIn, UserButton,useAuth, useUser } from "@clerk/nextjs";
+import { useEffect } from "react";
 const Navbar = ({ className }) => {
+	const { isSignedIn} = useAuth();
+	const { user } = useUser();
+	// Sincronizzo Clerk con il nostro db
+	useEffect(() => {
+		if(isSignedIn === true && user !== null){
+			fetch("/api/users/baseusers", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					username: user?.primaryEmailAddress?.emailAddress,
+					id: user.id,
+				}),
+			});
+		}
+
+	}, [ user]);
 	return (
 		<nav
 			className={`${className} flex flex-wrap p-1 justify-between align-middle `}>
@@ -24,7 +42,7 @@ const Navbar = ({ className }) => {
 						</div>
 						<div
 							tabIndex={0}
-							className='dropdown-content card card-compact  z-[1]  shadow'>
+							className='dropdown-content card card-compact  z-[1]'>
 							<div className='card-body'>
 								<SignIn routing="hash" />
 							</div>
