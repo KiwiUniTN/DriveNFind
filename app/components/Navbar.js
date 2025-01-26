@@ -1,10 +1,7 @@
 'use client';
 import React from "react";
 import Image from "next/image";
-import { SignedIn, SignedOut, SignIn, SignInButton, UserButton } from "@clerk/nextjs";
-
-
-
+import { SignedIn, SignedOut, SignIn, UserButton } from "@clerk/nextjs";
 
 const Navbar = ({ className }) => {
 	return (
