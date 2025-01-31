@@ -43,8 +43,20 @@ export async function GET(req) {
 export async function POST(req) {
   // Parse the JSON body
   const { username, password } = await req.json();
-
+  //clerk check 
+  try {
+    await connectToDB();
+    const existingUser = await User.findByUsername(username);
+    if(username && !password && existingUser){
+      return Response.json({ message: 'User already insert with Clerk' }, { status: 200 });
+    }
+  } catch (error) {
+    console.log('Error checking clerk:', error);
+  }
   // Basic input validation
+  if (!username && !password ) {
+    return Response.json({ message: 'Missing required fields' }, { status: 400 });
+  }
   if (!username || !password) {
     return Response.json({ message: 'Missing required fields' }, { status: 400 });
   }

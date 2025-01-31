@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect,useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import SearchBar from "./SearchBar";	
 import ParkCard from "./ParkCard";
 
 const DEFAULT_POSITION = [46.067508, 11.121539]; // Trento
@@ -29,7 +30,14 @@ function LocateUser() {
 	return null;
 }
 
-const ParkingMap = ({ parkingSpots }) => {
+const ParkingMap = ({ parkingSpots =[], refreshSpots }) => {
+	const [spots, setSpots] = useState(parkingSpots);
+
+	useEffect(() => {
+		setSpots(parkingSpots);
+	}, [parkingSpots]);
+
+	
 	useEffect(() => {
 		if (typeof window !== "undefined") {
 			const L = require("leaflet");
@@ -46,29 +54,34 @@ const ParkingMap = ({ parkingSpots }) => {
 	}, []);
 
 	return (
-		<MapContainer
-			center={DEFAULT_POSITION}
-			zoom={13}
-			scrollWheelZoom={true}
-			style={{ height: "100%", width: "100%", zIndex: 0 }}>
-			<TileLayer
-				attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-				url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-			/>
-			<LocateUser />
-			{parkingSpots.map((spot, index) => (
-				<Marker
-					key={index}
-					position={[
-						spot.location.coordinates[1],
-						spot.location.coordinates[0],
-					]}>
-					<Popup>
-						<ParkCard parkingLot={spot} />
-					</Popup>
-				</Marker>
-			))}
-		</MapContainer>
+		<div className='relative w-screen h-screen'>
+			<MapContainer
+				center={DEFAULT_POSITION}
+				zoom={13}
+				scrollWheelZoom={true}
+				style={{ height: "100%", width: "100%", zIndex: 0 }}>
+				<TileLayer
+					attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+					url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+				/>
+				<LocateUser />
+				{parkingSpots.map((spot, index) => (
+					<Marker
+						key={index}
+						position={[
+							spot.location.coordinates[1],
+							spot.location.coordinates[0],
+						]}>
+						<Popup>
+							<ParkCard parkingLot={spot} />
+						</Popup>
+					</Marker>
+				))}
+			</MapContainer>
+			<div className='absolute top-2 left-16 z-[1]'>
+				<SearchBar refreshSpots={refreshSpots}/>
+			</div>
+		</div>
 	);
 };
 

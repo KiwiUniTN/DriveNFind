@@ -9,6 +9,8 @@ export async function GET(req, { params }) {
   const long = searchParams.get('long');
   const disponibilita = searchParams.get('disponibilita');
   const regolamento = searchParams.get('regolamento');
+  const disabile = searchParams.get('disabile');
+  const alimentazione = searchParams.get('alimentazione');
 
   try {
     if (id) {
@@ -26,7 +28,12 @@ export async function GET(req, { params }) {
     if (regolamento) {
       query.regolamento = regolamento;
     }
-
+    if (disabile) {
+      query.disabile = disabile === 'true';
+    }
+    if (alimentazione) {
+      query.alimentazione = alimentazione;
+    }
 
     //Se le API fornisce meno di 4 parcheggi significa che non ci sono 4 parcheggi LIBERI in un raggio di 1km
     if (lat && long) {

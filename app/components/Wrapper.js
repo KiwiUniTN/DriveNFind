@@ -1,18 +1,37 @@
 "use client";
-// Necessario in quanto le componenti di Clerk vengono renderizzate solo sul client 
 import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
 
 const Navbar = dynamic(() => import("./Navbar"), { ssr: false });
 const ParkingMap = dynamic(() => import("./ParkingMap"), { ssr: false });
 
-const wrapper =  ({spots}) => {
-    
-  return(
-    <>
-        <Navbar className='h-1/6 w-screen' />;
-        <ParkingMap parkingSpots={spots} />
-    </>
-  )
-}
+const Wrapper = ({ prevSpots }) => {
+	 const [spots, setSpots] = useState(prevSpots || []);
 
-export default wrapper
+		useEffect(() => {
+			if (prevSpots !== undefined) {
+				setSpots(prevSpots);
+			}
+		}, [prevSpots]);
+
+	const fetchNewSpots = async (query) => {
+		try {
+			const response = await fetch(`/api/parking-spots?${query}`);
+			if (!response.ok) {
+				throw new Error(`Failed to fetch data: ${response.statusText}`);
+			}
+			const data = await response.json();
+			setSpots(data); // Update spots based on search results
+		} catch (error) {
+			console.error("Error fetching parking spots:", error);
+		}
+	};
+	return (
+		<>
+			<Navbar className='h-1/6 w-screen' />
+			<ParkingMap parkingSpots={spots} refreshSpots={fetchNewSpots} />
+		</>
+	);
+};
+
+export default Wrapper;

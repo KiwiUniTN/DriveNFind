@@ -1,30 +1,46 @@
-'use client';
+"use client";
 import React from "react";
 import Image from "next/image";
-import { SignedIn, SignedOut, SignIn, UserButton,useAuth, useUser } from "@clerk/nextjs";
+import Reports from "./Reports";
+
+
+import {
+	SignedIn,
+	SignedOut,
+	SignIn,
+	UserButton,
+	useAuth,
+	useUser,
+} from "@clerk/nextjs";
 import { useEffect } from "react";
-const Navbar = ({ className }) => {
-	const { isSignedIn} = useAuth();
+const Navbar = ({ className, spots }) => {
+	const { isSignedIn } = useAuth();
 	const { user } = useUser();
 	// Sincronizzo Clerk con il nostro db
+	
 	useEffect(() => {
-		if(isSignedIn === true && user !== null){
-			fetch("/api/users/baseusers", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					username: user?.primaryEmailAddress?.emailAddress,
-					id: user.id,
-				}),
-			});
-		}
+		if (isSignedIn && user && user != undefined) {
+			const syncUser = async () => {
+				try {
+					await fetch("/api/users/baseusers", {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({
+							username: user.emailAddresses[0].emailAddress,
+						}),
+					});
+				} catch (error) {
+					console.log("Error during authion sync:", error);
+					
+				}
+			};
 
-	}, [ user]);
+			syncUser();
+		}
+	}, [isSignedIn, user]);
 	return (
 		<nav
-			className={`${className} flex flex-wrap p-1 justify-between align-middle `}>
+			className={`${className} flex flex-wrap p-1 justify-between align-middle`}>
 			<div className='relative w-1/12 h-16'>
 				<Image
 					src='/LogoDriveNFind.png'
@@ -34,23 +50,22 @@ const Navbar = ({ className }) => {
 					sizes='(max-width: 768px) 10vw, (max-width: 1200px) 5vw, 3vw'
 				/>
 			</div>
-			<div className='flex justify-center items-center w-1/12 h-16'>
-				<SignedOut> 
+			<div className='flex items-center w-1/12 h-16 justify-center mx-10 gap-2'>
+				<SignedOut>
 					<div className='dropdown dropdown-bottom dropdown-left'>
-						<div tabIndex={0} role='button' className='btn m-1'>
+						<button tabIndex={0} role='button' className='btn m-1'>
 							Accedi
-						</div>
-						<div
-							tabIndex={0}
-							className='dropdown-content card card-compact  z-[1]'>
+						</button>
+						<div className='dropdown-content card card-compact z-[1]'>
 							<div className='card-body'>
-								<SignIn routing="hash" />
+								<SignIn routing='hash' />
 							</div>
 						</div>
 					</div>
 				</SignedOut>
 				<SignedIn>
-					<UserButton  showName/>
+					<Reports />
+					<UserButton showName />
 				</SignedIn>
 			</div>
 		</nav>
