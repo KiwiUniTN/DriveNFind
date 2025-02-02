@@ -1,41 +1,52 @@
 "use client";
-import { useEffect,useState } from "react";
+import { use, useEffect,useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import SearchBar from "./SearchBar";	
 import ParkCard from "./ParkCard";
+import RoutingMachine from "./RoutingMachine";
+import ParkChoice from "./ParkChoice";
 
 const DEFAULT_POSITION = [46.067508, 11.121539]; // Trento
 
-function LocateUser() {
+function LocateUser({ setUserLocation }) {
 	const map = useMap();
 
 	useEffect(() => {
 		if (typeof window !== "undefined" && navigator.geolocation) {
-			navigator.geolocation.watchPosition(
-				() => {},
+			navigator.geolocation.getCurrentPosition(
+				(position) => {
+					const { latitude, longitude } = position.coords;
+					setUserLocation({ lat: latitude, lng: longitude }); // ✅ Store user location
+					map.setView([latitude, longitude], 13);
+				},
 				() => {
 					alert(
 						"Geolocalizzazione disabilitata, attivala per utilizzare quest'applicazione"
 					);
 				}
 			);
-
-			map.locate().on("locationfound", function (e) {
-				map.setView(e.latlng, map.getZoom());
-			});
 		}
-	}, [map]);
+	}, [map, setUserLocation]);
 
 	return null;
 }
 
-const ParkingMap = ({ parkingSpots =[], refreshSpots }) => {
+
+const ParkingMap = ({ parkingSpots =[], refreshSpots ,cardSpots}) => {
 	const [spots, setSpots] = useState(parkingSpots);
+	const [userLocation, setUserLocation] = useState(null);
+	const [destination, setDestination] = useState(null);
+	const [parkingOption, setParkingOption] = useState(null);
+	
 
 	useEffect(() => {
 		setSpots(parkingSpots);
 	}, [parkingSpots]);
+
+	useEffect(() => {
+		console.log("Da visualizzare in modo decente", parkingOption);
+	}, [parkingOption]);
 
 	
 	useEffect(() => {
@@ -54,7 +65,7 @@ const ParkingMap = ({ parkingSpots =[], refreshSpots }) => {
 	}, []);
 
 	return (
-		<div className='relative w-screen h-screen'>
+		<div className='relative w-screen h-screen  flex flex-col justify-end items-center'>
 			<MapContainer
 				center={DEFAULT_POSITION}
 				zoom={13}
@@ -64,7 +75,9 @@ const ParkingMap = ({ parkingSpots =[], refreshSpots }) => {
 					attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 					url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
 				/>
-				<LocateUser />
+				{/* Posizione Utente */}
+				<LocateUser setUserLocation={setUserLocation} />
+				{/* Marker Parcheggi */}
 				{parkingSpots.map((spot, index) => (
 					<Marker
 						key={index}
@@ -74,13 +87,39 @@ const ParkingMap = ({ parkingSpots =[], refreshSpots }) => {
 						]}>
 						<Popup>
 							<ParkCard parkingLot={spot} />
+							<button
+								onClick={() =>
+									setDestination({
+										lat: spot.location.coordinates[1],
+										lng: spot.location.coordinates[0],
+									})
+								}
+								className='text-blue-600 underline'>
+								Naviga
+							</button>
 						</Popup>
 					</Marker>
 				))}
+				{/* Routing Machine */}
+				{userLocation && destination && (
+					<RoutingMachine
+						userLocation={userLocation}
+						destination={destination}
+					/>
+				)}
 			</MapContainer>
 			<div className='absolute top-2 left-16 z-[1]'>
-				<SearchBar refreshSpots={refreshSpots}/>
+				<SearchBar
+					refreshSpots={refreshSpots}
+					position={DEFAULT_POSITION}
+					cardSpots={setParkingOption}
+				/>
 			</div>
+			{Array.isArray(parkingOption) && parkingOption.length > 0 ? (
+				<div className='absolute mb-4'>
+					<ParkChoice data={parkingOption} destination={setDestination} />
+				</div>
+			) : null}
 		</div>
 	);
 };

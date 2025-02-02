@@ -22,6 +22,7 @@ const Wrapper = ({ prevSpots }) => {
 			}
 			const data = await response.json();
 			setSpots(data); // Update spots based on search results
+			return data;
 		} catch (error) {
 			console.error("Error fetching parking spots:", error);
 		}
@@ -29,7 +30,7 @@ const Wrapper = ({ prevSpots }) => {
 	return (
 		<>
 			<Navbar className='h-1/6 w-screen' />
-			<ParkingMap parkingSpots={spots} refreshSpots={fetchNewSpots} />
+			<ParkingMap parkingSpots={spots} refreshSpots={fetchNewSpots} cardSpots={fetchNewSpots}/>
 		</>
 	);
 };
