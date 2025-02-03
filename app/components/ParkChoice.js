@@ -1,9 +1,18 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useState } from "react";
 
 const ParkChoice = ({ data, destination }) => {
 	console.log("opzioni", data);
+	const [showOptions, setShowOptions] = useState(true);
+	useEffect(() => {
+		// se i dati cambiano mostro le nuove opzioni 
+		console.log("opzioni", data);
+		setShowOptions(true);
+	}, [data]);
 	return (
-		<div className='carousel carousel-center bg-neutral rounded-box max-w-md space-x-4 p-4'>
+		<>
+		{showOptions ? (	
+		<div className='carousel carousel-center  rounded-box max-w-2xl space-x-4 p-4'>
 			{data.map((park, index) => (
 				<div key={index} className='carousel-item'>
 					<div className='card bg-base-100  shadow-xl'>
@@ -13,6 +22,7 @@ const ParkChoice = ({ data, destination }) => {
 								<button
 									className='btn btn-xs sm:btn-sm md:btn-md lg:btn-lg z-10'
 									onClick={() => {
+										setShowOptions(false);	
 										destination({
 											lat: park.location.coordinates[1],
 											lng: park.location.coordinates[0],
@@ -29,7 +39,7 @@ const ParkChoice = ({ data, destination }) => {
 								</div>
 								<div className='flex gap-3'>
 									<span>Distanza:</span>
-									<span>{park.distance} mt</span>
+									<span>{parseInt(park.distance)} mt</span>
 								</div>
 								<div className='flex gap-3'>
 									<span>Disponibilità:</span>
@@ -49,6 +59,8 @@ const ParkChoice = ({ data, destination }) => {
 				</div>
 			))}
 		</div>
+		) : null}
+		</>
 	);
 };
 

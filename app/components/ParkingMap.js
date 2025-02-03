@@ -43,11 +43,6 @@ const ParkingMap = ({ parkingSpots =[], refreshSpots ,cardSpots}) => {
 	useEffect(() => {
 		setSpots(parkingSpots);
 	}, [parkingSpots]);
-
-	useEffect(() => {
-		console.log("Da visualizzare in modo decente", parkingOption);
-	}, [parkingOption]);
-
 	
 	useEffect(() => {
 		if (typeof window !== "undefined") {

@@ -26,6 +26,8 @@ const SearchBar = ({ refreshSpots, position , cardSpots}) => {
 	const [query, setQuery] = useState("");
 	const [suggestions, setSuggestions] = useState([]);
 	const [showSuggestions, setShowSuggestions] = useState(false);
+	const [isLoading, setIsLoading] = useState(false);
+
 	
 
 	const [filters, setFilters] = useState({
@@ -123,16 +125,23 @@ const SearchBar = ({ refreshSpots, position , cardSpots}) => {
 		fetchLocations(value);
 	};
 	// Handle search icon click
-	const handleIconClick = () => {
+	const handleIconClick = async () => {
 		if (query) {
-			fetchLocations(query); // Fetch suggestions based on the current query
-			setShowSuggestions(true); // Show the suggestions
-		}
+        setIsLoading(true); // Start loading
+        try {
+            await fetchLocations(query); // Fetch suggestions
+        } finally {
+            setIsLoading(false); // Stop loading
+        }
+        setShowSuggestions(true);
+    }
+
 	};
 	// Handle location selection
 	const handleLocationSelect = (location) => {
 		setQuery(location.display_name);
 		setSuggestions([]);
+		setShowSuggestions(false);
 		const { lat, lon } = location;
 		let queryAPI = getAPIStringfromFilters(filters);
 		queryAPI += lat ? `&lat=${lat}` : "";
@@ -149,11 +158,13 @@ const SearchBar = ({ refreshSpots, position , cardSpots}) => {
 					placeholder='Cerca'
 					onChange={handleInputChange}
 				/>
+				{!isLoading ? (
 				<FontAwesomeIcon
 					icon={faMagnifyingGlass}
 					className='text-beigeChiaro h-5 w-5 hover:text-beigeChiaro'
 					onClick={handleIconClick}
 				/>
+				): ( <span className='loading loading-spinner loading-xs'></span>)}
 			</label>
 			{/* Dropdown Suggestions */}
 			{suggestions.length > 0 && (
