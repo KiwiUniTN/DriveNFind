@@ -14,66 +14,71 @@ const RoutingMachine = ({ userLocation, destination }) => {
 
 	useEffect(() => {
 		if (!map || !userLocation || !destination) return;
-
 		const L = require("leaflet");
-
-		// Creazione del controllo di routing
+		setRouteActive(true);
 		const routingControl = L.Routing.control({
 			waypoints: [
 				L.latLng(userLocation.lat, userLocation.lng),
 				L.latLng(destination.lat, destination.lng),
 			],
-			routeWhileDragging: true,
-			lineOptions: {
-				styles: [{ color: "blue", weight: 4 }],
-			},
+			routeWhileDragging: false,
+
+			lineOptions: { styles: [{ color: "blue", weight: 4 }] }, // Route color
 			router: L.Routing.osrmv1({
 				serviceUrl: "https://router.project-osrm.org/route/v1",
-				language: "it", // Lingua italiana
+				showAlternatives: true,
+				fitSelectedRoutes: true,
+				show: true,
+				collapsible: true,
+				language: "it",
 			}),
+			createMarker: function (i, waypoint, n) {
+				const marker = L.marker(waypoint.latLng, {
+					icon: L.icon({
+						iconUrl: 'OrangeMarker.png',
+						iconSize: [19, 27],
+						iconAnchor: [10, 27],
+						popupAnchor: [0, -27]
+					})
+				});
+				return marker;
+			}
 		}).addTo(map);
-
-		// Salva l'istanza del routing control
 		routingControlRef.current = routingControl;
-		setRouteActive(true);
-
 		return () => {
 			if (routingControlRef.current) {
-				try {
-					map.removeControl(routingControlRef.current);
-					routingControlRef.current = null;
-					setRouteActive(false);
-				} catch (error) {
-					console.error("Errore nel cleanup del routing:", error);
-				}
+				map.removeControl(routingControlRef.current);
 			}
 		};
 	}, [map, userLocation, destination]);
 
-	// Funzione per rimuovere manualmente il percorso
+	// Function to remove the route manually
 	const handleRemoveRoute = () => {
 		if (routingControlRef.current) {
 			try {
 				map.removeControl(routingControlRef.current);
 				routingControlRef.current = null;
-				setRouteActive(false);
+				setRouteActive(false); // ✅ Update state
+
 			} catch (error) {
 				console.error("Errore nel rimuovere il routing:", error);
 			}
 		}
 	};
+	if (!routeActive) return null;
 
 	return (
-		<>
-			{routeActive && (
-				<button
-					className='absolutebtn btn-accent left-5 bottom-4'
-					style={{ zIndex: 999 }}
-					onClick={handleRemoveRoute}>
-					Rimuovi Navigazione
-				</button>
-			)}
-		</>
+		<div
+			className="leaflet-bottom leaflet-left"
+			style={{ position: 'absolute', zIndex: 1000 }}
+		>
+			<button
+				className="btn btn-accent m-4"
+				onClick={handleRemoveRoute}
+			>
+				Rimuovi Navigazione
+			</button>
+		</div>
 	);
 };
 

@@ -6,9 +6,10 @@ function getAPIStringfromFilters(filters) {
 	const mapFilters = {
 		tutti: "",
 		disponibilita: "disponibilita=libero",
-		regolamento: "regolamento=pagamento",
+		regolamento: "regolamento=pagamento,pagamento-disco orario",
 		disabili: "disabile=true",
 		elettrico: "alimentazione=elettrico",
+		tipologia: "tipologia=coperto"
 		// lat: filters.lat ? `lat=${coordinates.lat}` : "",
 		// lon: filters.lon ? `long=${coordinates.lon}` : "",
 	};
@@ -22,20 +23,21 @@ function getAPIStringfromFilters(filters) {
 	return query;
 }
 
-const SearchBar = ({ refreshSpots, position , cardSpots}) => {
+const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 	const [query, setQuery] = useState("");
 	const [suggestions, setSuggestions] = useState([]);
 	const [showSuggestions, setShowSuggestions] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 
-	
+
 
 	const [filters, setFilters] = useState({
-		tutti: true,
+		tutti: "tutti",
 		disponibilita: false,
 		regolamento: false,
 		disabili: false,
 		elettrico: false,
+		tipologia: false,
 	});
 
 	// Inizializzo la lista dei parcheggi con tutti i parcheggi
@@ -49,16 +51,17 @@ const SearchBar = ({ refreshSpots, position , cardSpots}) => {
 			if (filterName === "tutti") {
 				refreshSpots(""); // Faccio il fetch della rotta senza parametri
 				return {
-					tutti: true,
+					tutti: "tutti",
 					disponibilita: false,
 					regolamento: false,
 					disabili: false,
 					elettrico: false,
+					tipologia: false,
 				};
 			} else {
 				const updatedFilters = {
 					...prevFilters,
-					tutti: false,
+					tutti: "",
 					[filterName]: !prevFilters[filterName],
 				};
 
@@ -68,7 +71,7 @@ const SearchBar = ({ refreshSpots, position , cardSpots}) => {
 				);
 
 				if (!isAnyFilterActive) {
-					updatedFilters.tutti = true;
+					updatedFilters.tutti = "tutti";
 				}
 
 				return updatedFilters;
@@ -85,58 +88,59 @@ const SearchBar = ({ refreshSpots, position , cardSpots}) => {
 	 * @property {string} regolamento - Filters by regulation, showing only items with payment required.
 	 * @property {string} disabili - Filters by accessibility, showing only items accessible to disabled individuals.
 	 * @property {string} elettrico - Filters by power source, showing only electric items.
+	 * @property {string} tipologia - Filters tipology, showing only covered items.
 	 */
-	
+
 
 	useEffect(() => {
 		const query = getAPIStringfromFilters(filters);
 		refreshSpots(query);
 	}, [filters]); //Se filters cambia, allora rifai il fetch
-
+	//Google Places API quando avremo i soldi
 	// Fetch location suggestions from Nominatim
 	const fetchLocations = async (searchTerm) => {
-		if (!searchTerm) {
-			setSuggestions([]);
-			return;
-		}
+		setIsLoading(true);
 
 		try {
-			//position[0]+1, position[1]+1, position[0]-1,position[1]-1 serve a limitare la ricerca all'interno di un quadrato con centro alla posizione del Duomo di Trento, TODO: cambiare con la posizione dell'utente
 			const response = await fetch(
-				`https://nominatim.openstreetmap.org/search?format=json&countrycodes=IT&limit=3&bounded=1&viewbox=${
-					position[1] - 0.25
-				},${position[0] - 0.25},${position[1] + 0.25},${
-					position[0] + 0.25
-				}&q=${searchTerm}`
+				'https://nominatim.openstreetmap.org/search?format=json&countrycodes=IT&addressdetails=1&polygon=1&q=' + searchTerm
 			);
+
+			if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
 			const data = await response.json();
 			console.log("Suggestions:", data);
 			setSuggestions(data);
 		} catch (error) {
 			console.error("Error fetching locations:", error);
+			setSuggestions([]);
+		} finally {
+			setIsLoading(false);
+		}
+	};
+	// Handle input change
+	const handleInputChange = (e) => {
+		const value = e.target.value.trim();
+		setQuery(value);
+		if (!value.trim()) {
+			setShowSuggestions(false);
+			setSuggestions([]);
+		}
+
+	};
+
+	// Handle search icon click
+	const handleIconClick = async () => {
+		if (!query.trim()) return; // Evita chiamate con input vuoto
+		console.log("Search query:", query);
+		setIsLoading(true);
+		try {
+			await fetchLocations(query);
+		} finally {
+			setIsLoading(false);
 		}
 	};
 
-	// Handle input change
-	const handleInputChange = (e) => {
-		const value = e.target.value;
-		setQuery(value);
-		setShowSuggestions(true);
-		fetchLocations(value);
-	};
-	// Handle search icon click
-	const handleIconClick = async () => {
-		if (query) {
-        setIsLoading(true); // Start loading
-        try {
-            await fetchLocations(query); // Fetch suggestions
-        } finally {
-            setIsLoading(false); // Stop loading
-        }
-        setShowSuggestions(true);
-    }
-
-	};
 	// Handle location selection
 	const handleLocationSelect = (location) => {
 		setQuery(location.display_name);
@@ -146,11 +150,11 @@ const SearchBar = ({ refreshSpots, position , cardSpots}) => {
 		let queryAPI = getAPIStringfromFilters(filters);
 		queryAPI += lat ? `&lat=${lat}` : "";
 		queryAPI += lon ? `&long=${lon}` : "";
-		refreshSpots(queryAPI).then((res)=> {cardSpots(res)});
+		refreshSpots(queryAPI).then((res) => { cardSpots(res) });
 	};
 
 	return (
-		<div className='flex bg-base-300 p-2 rounded-box items-center gap-2 join'>
+		<div className='flex p-2 rounded-box items-center gap-2 join'>
 			<label className='input input-bordered flex items-center gap-2'>
 				<input
 					type='text'
@@ -159,12 +163,12 @@ const SearchBar = ({ refreshSpots, position , cardSpots}) => {
 					onChange={handleInputChange}
 				/>
 				{!isLoading ? (
-				<FontAwesomeIcon
-					icon={faMagnifyingGlass}
-					className='text-beigeChiaro h-5 w-5 hover:text-beigeChiaro'
-					onClick={handleIconClick}
-				/>
-				): ( <span className='loading loading-spinner loading-xs'></span>)}
+					<FontAwesomeIcon
+						icon={faMagnifyingGlass}
+						className='text-beigeChiaro h-5 w-5 hover:text-beigeChiaro'
+						onClick={handleIconClick}
+					/>
+				) : (<span className='loading loading-spinner loading-xs'></span>)}
 			</label>
 			{/* Dropdown Suggestions */}
 			{suggestions.length > 0 && (
@@ -174,7 +178,7 @@ const SearchBar = ({ refreshSpots, position , cardSpots}) => {
 							key={index}
 							className='p-2 hover:bg-gray-200 cursor-pointer'
 							onClick={() => handleLocationSelect(location)}>
-							{location.display_name}
+							{location.address.aeroway} {location.address.railway} {location.address.building} {location.address.road} {location.address.county}
 						</li>
 					))}
 				</ul>
@@ -249,6 +253,19 @@ const SearchBar = ({ refreshSpots, position , cardSpots}) => {
 									className='checkbox'
 									checked={filters.elettrico}
 									onChange={() => handleCheckboxChange("elettrico")}
+								/>
+							</label>
+						</div>
+					</li>
+					<li>
+						<div className='form-control'>
+							<label className='label cursor-pointer flex justify-between w-40'>
+								<span className='label-text'>Coperto</span>
+								<input
+									type='checkbox'
+									className='checkbox'
+									checked={filters.tipologia}
+									onChange={() => handleCheckboxChange("tipologia")}
 								/>
 							</label>
 						</div>

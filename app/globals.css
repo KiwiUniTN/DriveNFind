@@ -28,3 +28,54 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+.leaflet-routing-container {
+  background: white;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  max-width: 350px;
+}
+
+.leaflet-routing-alt {
+  max-height: 500px;
+  overflow-y: auto;
+  border: none !important;
+}
+
+.leaflet-routing-alt h2 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1a365d;
+  margin-bottom: 0.5rem;
+}
+
+.leaflet-routing-alt tr {
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+}
+
+.leaflet-routing-alt td {
+  padding: 0 1rem;
+}
+
+.leaflet-routing-alt td:last-child {
+  text-align: right;
+  color: #4a5568;
+  min-width: 80px;
+}
+
+/* Rimuove lo spazio tra il numero e l'unità di misura */
+.leaflet-routing-alt td:last-child span {
+  white-space: nowrap;
+}
+
+.leaflet-routing-icon {
+  background-color: #3182ce;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  margin: 0.5rem;
+}

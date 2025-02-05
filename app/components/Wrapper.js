@@ -29,7 +29,7 @@ const Wrapper = ({ prevSpots }) => {
 	};
 	return (
 		<>
-			<Navbar className='h-1/6 w-screen' />
+			<Navbar className='h-[10%] w-screen' />
 			<ParkingMap parkingSpots={spots} refreshSpots={fetchNewSpots} cardSpots={fetchNewSpots}/>
 		</>
 	);

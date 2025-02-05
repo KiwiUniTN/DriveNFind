@@ -13,7 +13,7 @@ import {
 	useUser,
 } from "@clerk/nextjs";
 import { useEffect } from "react";
-const Navbar = ({ className, spots }) => {
+const Navbar = ({ className }) => {
 	const { isSignedIn } = useAuth();
 	const { user } = useUser();
 	// Sincronizzo Clerk con il nostro db
@@ -27,6 +27,7 @@ const Navbar = ({ className, spots }) => {
 						headers: { "Content-Type": "application/json" },
 						body: JSON.stringify({
 							username: user.emailAddresses[0].emailAddress,
+
 						}),
 					});
 				} catch (error) {
