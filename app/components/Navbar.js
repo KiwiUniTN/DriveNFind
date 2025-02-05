@@ -17,7 +17,7 @@ const Navbar = ({ className }) => {
 	const { isSignedIn } = useAuth();
 	const { user } = useUser();
 	// Sincronizzo Clerk con il nostro db
-	
+
 	useEffect(() => {
 		if (isSignedIn && user && user != undefined) {
 			const syncUser = async () => {
@@ -27,15 +27,13 @@ const Navbar = ({ className }) => {
 						headers: { "Content-Type": "application/json" },
 						body: JSON.stringify({
 							username: user.emailAddresses[0].emailAddress,
-
 						}),
 					});
+					console.log(body)
 				} catch (error) {
 					console.log("Error during authion sync:", error);
-					
 				}
 			};
-
 			syncUser();
 		}
 	}, [isSignedIn, user]);
@@ -51,11 +49,11 @@ const Navbar = ({ className }) => {
 					sizes='(max-width: 768px) 10vw, (max-width: 1200px) 5vw, 3vw'
 				/>
 			</div>
-			<div className='flex items-center w-1/12 h-16 justify-center mx-10 gap-2'>
+			<div className='flex items-center justify-center w-1/12 h-16 mx-10 gap-2'>
 				<SignedOut>
-					<div className='dropdown dropdown-bottom dropdown-left'>
-						<button tabIndex={0} role='button' className='btn m-1'>
-							Accedi
+					<div className='dropdown dropdown-bottom dropdown-left flex items-center'>
+						<button className="btn btn-xs text-white bg-[#ad181a] border-none sm:btn-sm md:btn-md lg:btn-lg z-10 h-auto flex items-center">
+							ACCEDI
 						</button>
 						<div className='dropdown-content card card-compact z-[1]'>
 							<div className='card-body'>

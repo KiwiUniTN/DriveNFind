@@ -6,7 +6,8 @@ function getAPIStringfromFilters(filters) {
 	const mapFilters = {
 		tutti: "",
 		disponibilita: "disponibilita=libero",
-		regolamento: "regolamento=pagamento,pagamento-disco orario",
+		pagamento: "regolamento=pagamento,pagamento-disco orario",
+		gratis: "regolamento=disco orario,gratuito senza limitazione d'orario",
 		disabili: "disabile=true",
 		elettrico: "alimentazione=elettrico",
 		tipologia: "tipologia=coperto"
@@ -34,7 +35,8 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 	const [filters, setFilters] = useState({
 		tutti: "tutti",
 		disponibilita: false,
-		regolamento: false,
+		pagamento: false,
+		gratis: false,
 		disabili: false,
 		elettrico: false,
 		tipologia: false,
@@ -49,23 +51,42 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 	const handleCheckboxChange = (filterName) => {
 		setFilters((prevFilters) => {
 			if (filterName === "tutti") {
-				refreshSpots(""); // Faccio il fetch della rotta senza parametri
+				refreshSpots("");
 				return {
 					tutti: "tutti",
 					disponibilita: false,
-					regolamento: false,
+					pagamento: false,
+					gratis: false,
 					disabili: false,
 					elettrico: false,
 					tipologia: false,
 				};
+			} else if (filterName === "pagamento" || filterName === "gratis") {
+				const oppositeFilter = filterName === "pagamento" ? "gratis" : "pagamento";
+				const updatedFilters = {
+					...prevFilters,
+					tutti: "",
+					[filterName]: !prevFilters[filterName],
+					[oppositeFilter]: false
+				};
+
+				const isAnyFilterActive = Object.keys(updatedFilters).some(
+					(key) => key !== "tutti" && updatedFilters[key]
+				);
+
+				if (!isAnyFilterActive) {
+					updatedFilters.tutti = "tutti";
+				}
+
+				return updatedFilters;
 			} else {
+				// Original logic for other filters
 				const updatedFilters = {
 					...prevFilters,
 					tutti: "",
 					[filterName]: !prevFilters[filterName],
 				};
 
-				// Se nessun filtro è attivo, riattivo "Tutti"
 				const isAnyFilterActive = Object.keys(updatedFilters).some(
 					(key) => key !== "tutti" && updatedFilters[key]
 				);
@@ -155,11 +176,11 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 
 	return (
 		<div className='flex p-2 rounded-box items-center gap-2 join'>
-			<label className='input input-bordered flex items-center gap-2'>
+			<label className='input input-bordered flex items-center gap-2 bg-white'>
 				<input
 					type='text'
-					className='grow text-beigeChiaro'
-					placeholder='Cerca'
+					className='grow text-black'
+					placeholder='Cerca la tua destinazione'
 					onChange={handleInputChange}
 				/>
 				{!isLoading ? (
@@ -167,6 +188,7 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 						icon={faMagnifyingGlass}
 						className='text-beigeChiaro h-5 w-5 hover:text-beigeChiaro'
 						onClick={handleIconClick}
+
 					/>
 				) : (<span className='loading loading-spinner loading-xs'></span>)}
 			</label>
@@ -184,18 +206,18 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 				</ul>
 			)}
 
-			<details className='dropdown'>
-				<summary className='btn'>
+			<details className='dropdown rounded-box'>
+				<summary className='btn bg-white border-none'>
 					<FontAwesomeIcon
 						icon={faFilter}
-						className='text-beigeChiaro h-5 w-5'
+						className='text-gray h-5 w-5 bg-wh'
 					/>
 				</summary>
-				<ul className='menu dropdown-content bg-base-100 rounded-box z-[1] text-beigeChiaro w-52'>
+				<ul className='menu dropdown-content bg-white rounded-box z-[1]  w-52'>
 					<li>
 						<div className='form-control'>
 							<label className='label cursor-pointer justify-between w-40 '>
-								<span className='label-text'>Tutti</span>
+								<span className='label-text text-black'>Tutti</span>
 								<input
 									type='checkbox'
 									className='checkbox'
@@ -208,7 +230,7 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 					<li>
 						<div className='form-control'>
 							<label className='label cursor-pointer flex justify-between w-40'>
-								<span className='label-text'>Libero</span>
+								<span className='label-text text-black'>Libero</span>
 								<input
 									type='checkbox'
 									className='checkbox'
@@ -221,12 +243,12 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 					<li>
 						<div className='form-control'>
 							<label className='label cursor-pointer flex justify-between w-40'>
-								<span className='label-text'>A Pagamento</span>
+								<span className='label-text text-black'>A Pagamento</span>
 								<input
 									type='checkbox'
 									className='checkbox'
-									checked={filters.regolamento}
-									onChange={() => handleCheckboxChange("regolamento")}
+									checked={filters.pagamento}
+									onChange={() => handleCheckboxChange("pagamento")}
 								/>
 							</label>
 						</div>
@@ -234,7 +256,20 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 					<li>
 						<div className='form-control'>
 							<label className='label cursor-pointer flex justify-between w-40'>
-								<span className='label-text'>Per Disabili</span>
+								<span className='label-text text-black'>Gratis</span>
+								<input
+									type='checkbox'
+									className='checkbox'
+									checked={filters.gratis}
+									onChange={() => handleCheckboxChange("gratis")}
+								/>
+							</label>
+						</div>
+					</li>
+					<li>
+						<div className='form-control'>
+							<label className='label cursor-pointer flex justify-between w-40'>
+								<span className='label-text text-black'>Per Disabili</span>
 								<input
 									type='checkbox'
 									className='checkbox'
@@ -247,7 +282,7 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 					<li>
 						<div className='form-control'>
 							<label className='label cursor-pointer flex justify-between w-40'>
-								<span className='label-text'>Elettrico</span>
+								<span className='label-text text-black'>Elettrico</span>
 								<input
 									type='checkbox'
 									className='checkbox'
@@ -260,7 +295,7 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 					<li>
 						<div className='form-control'>
 							<label className='label cursor-pointer flex justify-between w-40'>
-								<span className='label-text'>Coperto</span>
+								<span className='label-text text-black'>Coperto</span>
 								<input
 									type='checkbox'
 									className='checkbox'

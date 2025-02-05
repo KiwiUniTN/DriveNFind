@@ -17,7 +17,7 @@ export default  async function Home() {
 	const spots = await getParkingSpots();
 	
 	return (
-		<div className='h-screen w-screen flex flex-col items-center justify-center bg-beigeChiaro'>
+		<div>
 			<Wrapper spots={spots} />
 		</div>
 	);

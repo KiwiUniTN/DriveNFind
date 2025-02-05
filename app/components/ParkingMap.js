@@ -113,7 +113,7 @@ const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
 									<button
 										onClick={() => {
 											if (!isSignedIn) {
-												setErrorLogin("Devi essere loggato per segnalare un parcheggio.");
+												setErrorLogin("Devi aver fatto l'accesso per segnalare un parcheggio.");
 											} else {
 												setIsModalOpen(true)
 											}

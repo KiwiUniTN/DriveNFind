@@ -1,7 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
+@import url('https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -26,7 +28,30 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Fira Sans", sans-serif;
+  font-weight: 300; /* Bold by default */
+}
+.raleway-regular  {
+  font-family: "Raleway", serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+.raleway-semibold {
+  font-family: "Raleway", serif;
+  font-weight: 600;
+  font-style: normal;
+}
+.raleway-bold  {
+  font-family: "Raleway", serif;
+  font-optical-sizing: auto;
+  font-weight: 900;
+  font-style: normal;
+}
+.poppins-semibold {
+  font-family: "Poppins", serif;
+  font-weight: 600;
+  font-style: normal;
 }
 .leaflet-routing-container {
   background: white;
@@ -59,23 +84,31 @@ body {
 
 .leaflet-routing-alt td {
   padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.leaflet-routing-alt td:first-child {
+  flex: 1;
 }
 
 .leaflet-routing-alt td:last-child {
   text-align: right;
   color: #4a5568;
   min-width: 80px;
-}
-
-/* Rimuove lo spazio tra il numero e l'unità di misura */
-.leaflet-routing-alt td:last-child span {
-  white-space: nowrap;
+  justify-content: flex-end;
 }
 
 .leaflet-routing-icon {
   background-color: #3182ce;
-  width: 24px;
+  min-width: 24px;
   height: 24px;
   border-radius: 50%;
-  margin: 0.5rem;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.leaflet-routing-alt td span {
+  white-space: nowrap;
 }
