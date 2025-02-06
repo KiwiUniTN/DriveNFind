@@ -1,0 +1,877 @@
+openapi: 3.0.0
+info:
+  title: DriveNFind API Documentation
+  description: "API Documentation for managing parking lots,users accounts and reports\
+    \ for the DriveNFind software developed by Arcari Filippo, Conforti Leonardo and\
+    \ Gelmini Kevin."
+  version: 1.1.0
+servers:
+- url: https://virtserver.swaggerhub.com/KEVINGELMINI_1/DriveNFind/1.1.0
+  description: SwaggerHub API Auto Mocking
+- url: https://localhost:3000/api
+  description: Testing Server (uses sample data)
+paths:
+  /parking-spots:
+    get:
+      tags:
+      - Parking Sposts
+      summary: "Retrieve parking spots (all, 4 nearest or based on filters)"
+      description: |
+        Returns either all parking lots, the nearest 4 spots based on provided latitude and longitude, or a specific parking lots by its unique ID. This route is not protected via `token` it points to a JSON downloaded from the OpenAPI of Comune di Trento.
+        - If both `lat` and `long` of the destination are provided, the nearest 4 free parking lots to the given location are returned.
+        - If the `id` parameter is provided, details of the specific parking lots are returned.
+        - If the `disponibilita` parameter is provided, we will see only the lots that respect the filter value specified
+        - If `regolamento` is provided, we will see only the lots that respect the `regolamento` value specified
+        - If `no parameters` are provided, all available parking lots (free and occupied) are returned.
+      operationId: getSpots
+      parameters:
+      - name: id
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: number
+          format: int
+      - name: lat
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: number
+          format: float
+      - name: long
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: number
+          format: float
+      - name: disponibilita
+        in: query
+        description: Filter parking spots by availability
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - libero
+          - occupato
+          - navigazione
+      - name: regolamento
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - pagamento-disco orario
+          - disco orario
+          - gratuito senza limitazione d'orario
+          - pagamento
+      responses:
+        "200":
+          description: "List of parking lots returned (either nearest 4 free, all\
+            \ spots, or details of a specific spot based on filters)"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ParkingSpot'
+        "500":
+          description: Internal Server Error
+    patch:
+      tags:
+      - Parking Sposts
+      summary: Change the disponibilita of a parking-spot through id
+      description: |
+        Change the disponibilita of a parking-spot given its id
+        - If both `disponibilita` and `id` of the parking spot are provided, the old disponibilita of the parking spot uniquely identified by its id is change to disponibilita
+      operationId: setDisponibilita
+      parameters:
+      - name: id
+        in: query
+        description: id of the parking-spot whose disponibilita will change
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: number
+          format: int
+      - name: disponibilita
+        in: query
+        description: New disponibilita of the parking-spot
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - libero
+          - occupato
+          - navigazione
+      responses:
+        "200":
+          description: Return the updated Parking spot
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ParkingSpot'
+        "400":
+          description: Missing id or disponibilita
+        "404":
+          description: Parking spot not found
+        "500":
+          description: Internal Server Error
+  /users:
+    get:
+      tags:
+      - Users
+      summary: Retrieve all users
+      description: Fetch all users from the database. Only accessible to admins.
+      responses:
+        "200":
+          description: Successful response with a list of users (excluding encrypted
+            passwords)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserNoPassword'
+        "403":
+          description: Forbidden - the user is not authorized to access this endpoint.
+        "500":
+          description: Internal Server Error
+      security:
+      - bearerAuth: []
+    patch:
+      tags:
+      - Users
+      summary: Update user information
+      description: Update the user's password (self only) or change another user's
+        role (admin only).
+      requestBody:
+        description: The details of the update operation.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/users_body'
+        required: true
+      responses:
+        "200":
+          description: Successful operation with details of the update.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+        "400":
+          description: Bad Request - Invalid data provided.
+        "403":
+          description: Forbidden - The user is not authorized to perform this action.
+        "404":
+          description: Not Found - The specified user was not found.
+        "500":
+          description: Internal Server Error
+      security:
+      - bearerAuth: []
+  /users/baseusers:
+    get:
+      tags:
+      - Users
+      summary: Retrieves base user details or search for a specific base user by username.
+      description: |
+        Allows an authenticated admin to retrieve details of base users or search for a specific base user by username.
+        A base user can only retrieve their own details.
+      operationId: getBaseUserDetails
+      parameters:
+      - name: username
+        in: query
+        description: The username of the base user to search for.
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successfully retrieved base user(s) data.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserNoPassword'
+        "403":
+          description: "Forbidden. Insufficient permissions, base users cannot access\
+            \ other base users' data."
+        "404":
+          description: The requested base user was not found.
+        "500":
+          description: Internal server error.
+        "401":
+          description: Unauthorized. The user does not have sufficient permissions.
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - Users
+      summary: Create a new base user.
+      description: "Creates a new user with the role of `baseuser`.  \nThe `role`\
+        \ is automatically assigned as `baseuser` and cannot be modified during creation.\n"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/users_baseusers_body'
+        required: true
+      responses:
+        "201":
+          description: User created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_201'
+        "400":
+          description: Invalid input or username already taken.
+        "500":
+          description: Internal server error.
+      security:
+      - bearerAuth: []
+    delete:
+      tags:
+      - Users
+      summary: Delete a base user account.
+      description: "Deletes a base user account.  \n- **Base users** can delete only\
+        \ their own accounts.  \n- **Admins** can delete any base user account but\
+        \ cannot delete other admins.  \n- Admins must provide the `targetUsername`\
+        \ of the user to be deleted.\n"
+      parameters:
+      - name: targetUsername
+        in: query
+        description: The username of the base user to delete. Required for admins.
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: User deleted successfully.
+        "403":
+          description: Forbidden action.
+        "404":
+          description: User not found.
+        "500":
+          description: Internal server error.
+      security:
+      - bearerAuth: []
+  /users/admins:
+    get:
+      tags:
+      - Users
+      summary: Retrieve a list of admin users or the current admin user's details
+      description: |
+        This endpoint allows an authenticated admin to either retrieve a list of all admin users or get their own user details.
+        Base users are forbidden from accessing this endpoint.
+      operationId: getAdminUsers
+      parameters:
+      - name: getAll
+        in: query
+        description: "Flag to get all admin users. If not provided, returns the current\
+          \ admin's user details."
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - "true"
+          - "false"
+      responses:
+        "200":
+          description: Successfully retrieved the admin users or the current admin
+            user's details
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserNoPassword'
+        "403":
+          description: Forbidden - insufficient permissions
+        "404":
+          description: User not found
+        "500":
+          description: Internal server error
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - Users
+      summary: Create a new admin user
+      description: |
+        This endpoint allows an authenticated admin to create a new admin user.
+        The request requires a username and password for the new user. If the username already exists, the creation will fail.
+        The `role` is automatically assigned as `admin` and cannot be modified during creation.
+      operationId: createAdminUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/users_admins_body'
+        required: true
+      responses:
+        "201":
+          description: Admin user created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_201_1'
+        "400":
+          description: Bad request due to missing fields or username already taken
+        "403":
+          description: Forbidden - insufficient permissions
+        "500":
+          description: Internal server error
+      security:
+      - bearerAuth: []
+    delete:
+      tags:
+      - Users
+      summary: Deletes an admin user or the currently authenticated admin's own account.
+      description: "Allows an authenticated admin to delete their own account or another\
+        \ admin user's account. \nIf deleting the admin's own account, at least one\
+        \ admin must remain in the system.\n"
+      operationId: deleteAdminUser
+      parameters:
+      - name: targetUsername
+        in: query
+        description: "The username of the admin to delete. If omitted, the currently\
+          \ authenticated admin will be deleted."
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: adminUser123
+      responses:
+        "200":
+          description: Successfully deleted the admin user or current admin's account.
+        "403":
+          description: Forbidden. At least one admin must remain in the system when
+            trying to delete the last admin's account.
+        "404":
+          description: User to be deleted not found.
+        "500":
+          description: Internal server error.
+        "401":
+          description: Unauthorized. The user does not have admin rights.
+      security:
+      - bearerAuth: []
+  /users/reports:
+    get:
+      tags:
+      - Reports
+      summary: Fetch reports based on user role or a specific report by ID
+      description: "Fetches reports for the requesting user based on their role. \n\
+        - **Admins**: Can view all reports.\n- **Base users**: Can only view their\
+        \ own reports.\n- If a `reportId` query parameter is provided, fetches the\
+        \ specific report if authorized.\n"
+      parameters:
+      - name: reportId
+        in: query
+        description: The ID of the report to fetch.
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Reports successfully retrieved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_1'
+        "403":
+          description: Forbidden - User is not allowed to access the report.
+        "404":
+          description: Report not found.
+        "500":
+          description: Internal server error.
+      security:
+      - bearerAuth: []
+    patch:
+      tags:
+      - Reports
+      summary: Update a report based on user role
+      description: |
+        Modifies a report based on the user's role.
+        - **Base users** can update `description` and `imageUrl` but cannot modify the `status`.
+        - **Admins** can update `status` but cannot modify `description` or `imageUrl`.
+      parameters:
+      - name: reportId
+        in: query
+        description: The ID of the report to update.
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/users_reports_body'
+        required: true
+      responses:
+        "200":
+          description: Report successfully updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_1'
+        "403":
+          description: Invalid input or role restrictions.
+        "404":
+          description: Report not found.
+        "500":
+          description: Internal server error.
+      security:
+      - bearerAuth: []
+  /users/baseusers/reports:
+    post:
+      tags:
+      - Reports
+      summary: Create a new report
+      description: |
+        Creates a new report for a user. The report will contain details like the parking lot, description, status, and an optional image URL.
+        Only users with the role `baseuser` can create a report.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/baseusers_reports_body'
+        required: true
+      responses:
+        "201":
+          description: Report successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_201_2'
+        "403":
+          description: Admin user attempting to create a report.
+        "500":
+          description: Internal server error when creating the report.
+      security:
+      - bearerAuth: []
+    delete:
+      tags:
+      - Reports
+      summary: Delete a report
+      description: |
+        Deletes a report by its ID. Only `baseuser` users can delete their own reports.
+      parameters:
+      - name: id
+        in: query
+        description: The ID of the report to delete.
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Report successfully deleted.
+        "403":
+          description: Unauthorized user attempting to delete the report.
+        "500":
+          description: Internal server error during the deletion of the report.
+      security:
+      - bearerAuth: []
+  /authenticate:
+    post:
+      tags:
+      - Authentication
+      summary: Authenticate a user and obtain a JWT token
+      description: |
+        Authenticates a user based on provided credentials and returns a JWT token if successful.
+      operationId: authenticateUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/authenticate_body'
+        required: true
+      responses:
+        "200":
+          description: JWT token returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_2'
+        "401":
+          description: Unauthorized - invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_401'
+        "400":
+          description: Bad Request - missing credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_400'
+components:
+  schemas:
+    ParkingSpot:
+      required:
+      - alimentazione
+      - disabile
+      - disponibilita
+      - id
+      - indirizzo
+      - link
+      - location
+      - nome
+      - regolamento
+      - tipologia
+      type: object
+      properties:
+        id:
+          type: number
+          description: Unique identifier for the parking spot.
+          format: int
+          example: 12
+        nome:
+          type: string
+          description: Name of the parking spot
+          example: TT32
+        indirizzo:
+          type: string
+          description: Address of the parking spot
+          example: Via roma 32
+        tipologia:
+          type: string
+          description: Type of parking spot
+          enum:
+          - coperto
+          - scoperto
+        regolamento:
+          type: string
+          description: Regulation of the parking spot
+          enum:
+          - pagamento-disco orario
+          - disco orario
+          - gratuito senza limitazione d'orario
+          - pagamento
+        link:
+          type: string
+          description: URL with additional information about the parking spot
+          format: uri
+          example: moreinfo.com
+        location:
+          $ref: '#/components/schemas/ParkingSpot_location'
+        alimentazione:
+          type: string
+          description: Type of vehicle supported by the parking spot
+          enum:
+          - termico
+          - elettrico
+        disabile:
+          type: boolean
+          description: Whether the parking spot is accessible for disabled users
+        disponibilita:
+          type: string
+          description: Availability status of the parking spot
+          enum:
+          - libero
+          - occupato
+          - navigazione
+    User:
+      required:
+      - password
+      - username
+      type: object
+      properties:
+        username:
+          type: string
+          description: Unique username (email) of the user
+          example: baseuser1@gmail.com
+        password:
+          type: string
+          description: Password of the user
+        role:
+          type: string
+          description: "Specifies the role of the user, which can be either baseuser\
+            \ or admin"
+          enum:
+          - baseuser
+          - admin
+    Report:
+      required:
+      - description
+      - id
+      - parkingLotId
+      - status
+      - username
+      type: object
+      properties:
+        id:
+          type: number
+          description: Unique identifier for the report.
+          format: int
+          example: 5
+        username:
+          type: number
+          description: Unique identifier of the base user who created the report.
+          format: int
+        parkingLotId:
+          type: number
+          description: Unique identifier of the parking lot being reported.
+          format: int
+          example: 12
+        description:
+          type: string
+          description: Description of the issue reported.
+          example: Description of a report on a parking spot
+        status:
+          type: string
+          description: Current status of the report.
+          example: In elaborazione
+          enum:
+          - Evasa
+          - In elaborazione
+          - In sospeso
+        imageUrl:
+          type: string
+          description: Updated URL of the image associated with the report
+          format: uri
+          example: https://example.com/path/to/image.jpg
+    UserNoPassword:
+      type: object
+      properties:
+        username:
+          type: string
+          description: Unique username (email) of the user
+          example: adminuser@gmail.com
+        role:
+          type: string
+          description: Role of the user
+          example: admin
+          enum:
+          - baseuser
+          - admin
+    ReportUpdate:
+      type: object
+      properties:
+        description:
+          type: string
+          description: Updated description of the report
+          example: Updated description
+        status:
+          type: string
+          description: Updated status of the report
+          example: Evasa
+          enum:
+          - Evasa
+          - In elaborazione
+          - In sospeso
+        imageUrl:
+          type: string
+          description: Updated URL of the image associated with the report
+          format: uri
+          example: https://example.com/path/to/new_image.jpg
+    users_body:
+      type: object
+      properties:
+        username:
+          type: string
+          description: The username of the target user (only required for role updates).
+        newPassword:
+          type: string
+          description: New password for the authenticated user (self only).
+        newRole:
+          type: string
+          description: New role to assign to the target user (admin only).
+          enum:
+          - baseuser
+          - admin
+    inline_response_200:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+    users_baseusers_body:
+      required:
+      - password
+      - username
+      type: object
+      properties:
+        username:
+          type: string
+          description: The username of the new user. Must be unique.
+          example: newBaseUser
+        password:
+          type: string
+          description: The password for the new user. It will be hashed before storage.
+          example: strongPassword123
+    inline_response_201:
+      type: object
+      properties:
+        message:
+          type: string
+          example: User created successfully
+        user:
+          $ref: '#/components/schemas/inline_response_201_user'
+    users_admins_body:
+      type: object
+      properties:
+        username:
+          type: string
+          description: The username of the new user. Must be unique.
+          example: newAdminUser
+        password:
+          type: string
+          description: The password for the new user. It will be hashed before storage.
+          format: password
+          example: securePassword123
+    inline_response_201_1:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Admin user created successfully
+        user:
+          $ref: '#/components/schemas/UserNoPassword'
+    inline_response_200_1:
+      type: object
+      properties:
+        report:
+          $ref: '#/components/schemas/Report'
+    users_reports_body:
+      type: object
+      properties:
+        report:
+          $ref: '#/components/schemas/ReportUpdate'
+    baseusers_reports_body:
+      required:
+      - description
+      - parkingLotId
+      type: object
+      properties:
+        parkingLotId:
+          type: string
+          description: The ID of the parking lot related to the report.
+        description:
+          type: string
+          description: A description of the issue or observation.
+        imageUrl:
+          type: string
+          description: An optional URL for an image related to the report.
+    inline_response_201_2:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: The ID of the created report.
+        username:
+          type: string
+          description: The username of the user who created the report.
+        parkingLotId:
+          type: string
+          description: The ID of the parking lot related to the report.
+        description:
+          type: string
+          description: The description of the report.
+        status:
+          type: string
+          description: "The status of the report, default is 'In sospeso'."
+        imageUrl:
+          type: string
+          description: The image URL of the report.
+          format: uri
+    authenticate_body:
+      required:
+      - password
+      - username
+      type: object
+      properties:
+        username:
+          type: string
+          description: Username of the user.
+          example: john_doe
+        password:
+          type: string
+          description: Password of the user.
+          example: securepassword123
+    inline_response_200_2:
+      type: object
+      properties:
+        token:
+          type: string
+          description: The JWT token for authenticated requests.
+    inline_response_401:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Error message indicating invalid credentials.
+          example: Invalid username or password.
+    inline_response_400:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Error message indicating missing credentials.
+          example: Username and password are required.
+    ParkingSpot_location:
+      required:
+      - coordinates
+      - type
+      type: object
+      properties:
+        type:
+          type: string
+          description: GeoJSON type
+          enum:
+          - Point
+        coordinates:
+          type: array
+          description: "Coordinates in [longitude, latitude]"
+          example:
+          - 13.512312
+          - 7.1231231
+          items:
+            type: number
+      description: Geospatial location of the parking spot
+    inline_response_201_user:
+      type: object
+      properties:
+        username:
+          type: string
+          example: johndoe
+        role:
+          type: string
+          description: |
+            This field is automatically assigned and always set to `baseuser`.
+          example: baseuser
+          enum:
+          - baseuser
+        _id:
+          type: string
+          example: 64b3fae8e26a1a0c4b634b42
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
