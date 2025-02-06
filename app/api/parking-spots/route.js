@@ -48,7 +48,7 @@ export async function GET(req) {
     }
 
     if (orConditions.length > 0) {
-      query.$or = orConditions;
+      query.$and = orConditions;
     }
 
     // Se le API forniscono meno di 4 parcheggi significa che non ci sono 4 parcheggi LIBERI in un raggio di 1km
@@ -75,6 +75,8 @@ export async function GET(req) {
     return new Response(JSON.stringify({ message: 'Server error', error: error.message }), { status: 500 });
   }
 }
+
+
 export async function PATCH(req) {
   await connectToDB();
   const { searchParams } = new URL(req.url);

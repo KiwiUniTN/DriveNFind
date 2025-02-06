@@ -48,6 +48,7 @@ var greenIcon = new LeafIcon({ iconUrl: "GreenMarker.png" }),
 const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
 	const [errorLogin, setErrorLogin] = useState(null);
 	const { isSignedIn } = useAuth();
+	const [showAlertNoPark, setShowAlertNoPark] = useState(false);
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [error, setError] = useState(null);
 	const [spots, setSpots] = useState(parkingSpots);
@@ -62,7 +63,13 @@ const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
 	useEffect(() => {
 		setSpots(parkingSpots);
 	}, [parkingSpots]);
-
+	useEffect(() => {
+		if (Array.isArray(parkingOption) && parkingOption.length === 0) {
+			setShowAlertNoPark(true);
+		} else {
+			setShowAlertNoPark(false);
+		}
+	}, [parkingOption]); // Runs when parkingOption changes
 
 	return (
 		<div className='relative w-screen h-screen  flex flex-col justify-end items-center'>
@@ -122,6 +129,7 @@ const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
 											console.error('Error updating parking spot:', error);
 											// You might want to show an error message to the user here
 										}
+
 									}}
 									className='text-blue-600 underline raleway-semibold'
 								>
@@ -173,43 +181,60 @@ const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
 				))}
 				{/* Routing Machine */}
 				{userLocation && destination && (
-					console.log(destination),
-					<RoutingMachine
-						userLocation={userLocation}
-						destination={destination}
-						parkingId={destination.id}
-					/>
+					<div className="directions-container">
+						<RoutingMachine
+							userLocation={userLocation}
+							destination={destination}
+							parkingId={destination.id}
+							refreshSpots={refreshSpots}
+						/>
+					</div>
+
 				)}
 			</MapContainer>
 			<div className='absolute top-2 left-16 z-[1]'>
+
 				<SearchBar
 					refreshSpots={refreshSpots}
 					position={DEFAULT_POSITION}
 					cardSpots={setParkingOption}
 				/>
 			</div>
-			{Array.isArray(parkingOption) && parkingOption.length > 0 ? (
+			{Array.isArray(parkingOption) && parkingOption != null && parkingOption.length > 0 ? (
 				<div className='absolute mb-4'>
 					<ParkChoice data={parkingOption} destination={setDestination} />
 				</div>
-			) : null}
-			{error && (
-				<div className="fixed top-[12%] left-1/2 transform -translate-x-1/2 z-50 w-[90%] max-w-md">
-					<div role="alert" className="alert alert-error p-2 text-sm flex items-center gap-2">
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							className="h-4 w-4 shrink-0 stroke-current"
-							fill="none"
-							viewBox="0 0 24 24">
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth="2"
-								d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-						</svg>
-						<span className="raleway-regular">{error}</span>
-					</div>
+			) : showAlertNoPark ? (<div className="fixed top-[12%] left-1/2 transform -translate-x-1/2 z-50 w-[90%] max-w-md">
+				<div role="alert" className="alert alert-error p-2 text-sm flex items-center gap-2">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						className="h-4 w-4 shrink-0 stroke-current"
+						fill="none"
+						viewBox="0 0 24 24">
+						<path
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							strokeWidth="2"
+							d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+					</svg>
+					<span className="raleway-regular">Nessun parcheggio libero in un raggio di 1 km dalla destinazione</span>
 				</div>
+			</div>) : null}
+			{error && (
+				<div role="alert" className="alert alert-error p-2 text-sm flex items-center gap-2">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					className="h-4 w-4 shrink-0 stroke-current"
+					fill="none"
+					viewBox="0 0 24 24">
+					<path
+						strokeLinecap="round"
+						strokeLinejoin="round"
+						strokeWidth="2"
+						d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+				</svg>
+				<span className="raleway-regular">{error}</span>
+			</div>
 			)}
 		</div>
 

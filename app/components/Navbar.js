@@ -63,8 +63,8 @@ const Navbar = ({ className }) => {
 					</div>
 				</SignedOut>
 				<SignedIn>
-					<Reports />
-					<UserButton showName />
+					<Reports className="raleway-regular"/>
+					<UserButton showName className="raleway-regular"/>
 				</SignedIn>
 			</div>
 		</nav>

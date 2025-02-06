@@ -20,7 +20,7 @@ const ParkCard = ({ parkingLot }) => {
 				Regolamento: <span className='raleway-regular'>{parkingLot.regolamento}</span>
 			</div >
 			<div className='raleway-semibold'>
-				Per disabili: <span className='raleway-regular'>{parkingLot.disabile ? "Sì" : "No"}</span>
+				Parcheggio giallo per disabili: <span className='raleway-regular'>{parkingLot.disabile ? "Sì" : "No"}</span>
 			</div>
 			<div className='raleway-semibold'>
 				Alimentazione: <span className='raleway-regular'>{parkingLot.alimentazione}</span>

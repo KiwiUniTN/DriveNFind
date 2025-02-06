@@ -2,30 +2,35 @@ import React, { use, useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass, faFilter } from "@fortawesome/free-solid-svg-icons";
 
-function getAPIStringfromFilters(filters) {
+function getAPIStringfromFilters(filters, freeOnly) {
 	const mapFilters = {
 		tutti: "",
-		disponibilita: "disponibilita=libero",
 		pagamento: "regolamento=pagamento,pagamento-disco orario",
 		gratis: "regolamento=disco orario,gratuito senza limitazione d'orario",
 		disabili: "disabile=true",
 		elettrico: "alimentazione=elettrico",
 		tipologia: "tipologia=coperto"
-		// lat: filters.lat ? `lat=${coordinates.lat}` : "",
-		// lon: filters.lon ? `long=${coordinates.lon}` : "",
 	};
+
 	let query = "";
 	for (const filter in filters) {
 		if (filters[filter]) {
 			query += mapFilters[filter] + "&";
 		}
 	}
-	query = query.slice(0, -1); // Rimuovo l'ultimo carattere "&"
+
+	if (freeOnly) {
+		query += "disponibilita=libero&";
+	}
+
+	query = query.slice(0, -1); // Remove trailing "&"
 	return query;
 }
 
+
 const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 	const [query, setQuery] = useState("");
+	const [freeOnly, setFreeOnly] = useState(true);
 	const [suggestions, setSuggestions] = useState([]);
 	const [showSuggestions, setShowSuggestions] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
@@ -34,7 +39,6 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 
 	const [filters, setFilters] = useState({
 		tutti: "tutti",
-		disponibilita: false,
 		pagamento: false,
 		gratis: false,
 		disabili: false,
@@ -54,7 +58,6 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 				refreshSpots("");
 				return {
 					tutti: "tutti",
-					disponibilita: false,
 					pagamento: false,
 					gratis: false,
 					disabili: false,
@@ -114,9 +117,10 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 
 
 	useEffect(() => {
-		const query = getAPIStringfromFilters(filters);
+		const query = getAPIStringfromFilters(filters, freeOnly);
 		refreshSpots(query);
-	}, [filters]); //Se filters cambia, allora rifai il fetch
+	}, [filters, freeOnly]); // React when `freeOnly` state changes and filters changes
+	
 	//Google Places API quando avremo i soldi
 	// Fetch location suggestions from Nominatim
 	const fetchLocations = async (searchTerm) => {
@@ -173,13 +177,15 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 		queryAPI += lon ? `&long=${lon}` : "";
 		refreshSpots(queryAPI).then((res) => { cardSpots(res) });
 	};
-
+	const uniqueSuggestions = Array.from(
+		new Map(suggestions.map(item => [item.address.road, item])).values()
+	);
 	return (
-		<div className='flex p-2 rounded-box items-center gap-2 join'>
+		<div className='flex rounded-box items-center gap-2 join'>
 			<label className='input input-bordered flex items-center gap-2 bg-white'>
 				<input
 					type='text'
-					className='grow text-black'
+					className='grow text-black raleway-regular'
 					placeholder='Cerca la tua destinazione'
 					onChange={handleInputChange}
 				/>
@@ -193,9 +199,9 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 				) : (<span className='loading loading-spinner loading-xs'></span>)}
 			</label>
 			{/* Dropdown Suggestions */}
-			{suggestions.length > 0 && (
-				<ul className='absolute top-12 left-0 w-full bg-white border rounded shadow-md z-50 max-h-40 overflow-auto'>
-					{suggestions.map((location, index) => (
+			{uniqueSuggestions.length > 0 && (
+				<ul className='raleway-regular absolute top-12 left-0 w-full mt-2 bg-white border rounded shadow-md z-50 max-h-40 overflow-auto'>
+					{uniqueSuggestions.map((location, index) => (
 						<li
 							key={index}
 							className='p-2 hover:bg-gray-200 cursor-pointer'
@@ -207,17 +213,17 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 			)}
 
 			<details className='dropdown rounded-box'>
-				<summary className='btn bg-white border-none'>
+				<summary className='btn bg-white border-none hover:bg-slate-900'>
 					<FontAwesomeIcon
 						icon={faFilter}
-						className='text-gray h-5 w-5 bg-wh'
+						className='text-gray h-5 w-5 bg-wh '
 					/>
 				</summary>
 				<ul className='menu dropdown-content bg-white rounded-box z-[1]  w-52'>
 					<li>
 						<div className='form-control'>
 							<label className='label cursor-pointer justify-between w-40 '>
-								<span className='label-text text-black'>Tutti</span>
+								<span className='label-text text-black raleway-regular'>Tutti</span>
 								<input
 									type='checkbox'
 									className='checkbox'
@@ -230,20 +236,7 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 					<li>
 						<div className='form-control'>
 							<label className='label cursor-pointer flex justify-between w-40'>
-								<span className='label-text text-black'>Libero</span>
-								<input
-									type='checkbox'
-									className='checkbox'
-									checked={filters.disponibilita}
-									onChange={() => handleCheckboxChange("disponibilita")}
-								/>
-							</label>
-						</div>
-					</li>
-					<li>
-						<div className='form-control'>
-							<label className='label cursor-pointer flex justify-between w-40'>
-								<span className='label-text text-black'>A Pagamento</span>
+								<span className='label-text text-black raleway-regular'>A Pagamento</span>
 								<input
 									type='checkbox'
 									className='checkbox'
@@ -256,7 +249,7 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 					<li>
 						<div className='form-control'>
 							<label className='label cursor-pointer flex justify-between w-40'>
-								<span className='label-text text-black'>Gratis</span>
+								<span className='label-text text-black raleway-regular'>Gratuito</span>
 								<input
 									type='checkbox'
 									className='checkbox'
@@ -269,7 +262,7 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 					<li>
 						<div className='form-control'>
 							<label className='label cursor-pointer flex justify-between w-40'>
-								<span className='label-text text-black'>Per Disabili</span>
+								<span className='label-text text-black raleway-regular'>Per Disabili</span>
 								<input
 									type='checkbox'
 									className='checkbox'
@@ -282,7 +275,7 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 					<li>
 						<div className='form-control'>
 							<label className='label cursor-pointer flex justify-between w-40'>
-								<span className='label-text text-black'>Elettrico</span>
+								<span className='label-text text-black raleway-regular'>Elettrico</span>
 								<input
 									type='checkbox'
 									className='checkbox'
@@ -295,7 +288,7 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 					<li>
 						<div className='form-control'>
 							<label className='label cursor-pointer flex justify-between w-40'>
-								<span className='label-text text-black'>Coperto</span>
+								<span className='label-text text-black raleway-regular'>Coperto</span>
 								<input
 									type='checkbox'
 									className='checkbox'
@@ -307,6 +300,7 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 					</li>
 				</ul>
 			</details>
+			<input type="checkbox" className="toggle toggle-success" checked={freeOnly} onChange={() => setFreeOnly(!freeOnly)} />
 		</div>
 	);
 };

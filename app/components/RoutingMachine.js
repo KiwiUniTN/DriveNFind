@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import "leaflet-routing-machine";
 import { useMap } from "react-leaflet";
 
-const RoutingMachine = ({ userLocation, destination, parkingId }) => {
+const RoutingMachine = ({ userLocation, destination, parkingId, refreshSpots }) => {
 	const map = useMap();
 	const routingControlRef = useRef(null);
 	const [routeActive, setRouteActive] = useState(false);
@@ -62,10 +62,11 @@ const RoutingMachine = ({ userLocation, destination, parkingId }) => {
 						'Content-Type': 'application/json'
 					}
 				});
-
+				
 				if (!response.ok) {
 					throw new Error('Failed to update parking spot status');
 				}
+				refreshSpots();
 			} catch (error) {
 				console.error("Error while removing route:", error);
 			}
@@ -80,7 +81,7 @@ const RoutingMachine = ({ userLocation, destination, parkingId }) => {
 						className="btn btn-error text-white px-4 py-2 rounded-lg shadow-lg bg-[#ad181a] hover:bg-slate-900 transition-colors border-none poppins-semibold"
 						onClick={handleRemoveRoute}
 					>
-						RIMUOVI NAVIGAZIONE
+						ESCI DALLA NAVIGAZIONE
 					</button>
 				</div>
 			)}

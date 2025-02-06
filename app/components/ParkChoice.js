@@ -4,7 +4,7 @@ import { useState } from "react";
 
 
 const ParkChoice = ({ data, destination }) => {
-	console.log("opzioni", data);
+	console.log("Opzioni", data);
 	const [showOptions, setShowOptions] = useState(true);
 	useEffect(() => {
 		// se i dati cambiano mostro le nuove opzioni 
@@ -13,7 +13,7 @@ const ParkChoice = ({ data, destination }) => {
 	}, [data]);
 	return (
 		<>
-			<div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+			<div className="fixed left-1/2 top-1/2 mt-[33vh] -translate-x-1/2 -translate-y-1/2 z-10">
 				{showOptions ? (
 					<div className='carousel carousel-center  rounded-box max-w-2xl space-x-4 p-4'>
 						{data.map((park, index) => (
@@ -24,12 +24,30 @@ const ParkChoice = ({ data, destination }) => {
 											<h2 className='card-title poppins-semibold'>{park.nome.toUpperCase()}</h2>
 											<button
 												className="btn btn-xs text-white bg-[#ad181a] border-none sm:btn-sm md:btn-md lg:btn-lg z-10"
-												onClick={() => {
+												onClick={async ()=> {
 													setShowOptions(false);
-													destination({
-														lat: park.location.coordinates[1],
-														lng: park.location.coordinates[0],
-													});
+													try {
+														const response = await fetch(`/api/parking-spots?id=${park._id}&disponibilita=navigazione`, {
+															method: 'PATCH',
+															headers: {
+																'Content-Type': 'application/json'
+															}
+														});
+			
+														if (!response.ok) {
+															throw new Error('Failed to update parking spot');
+														}
+			
+														// If the PATCH was successful, then update the destination
+														destination({
+															lat: park.location.coordinates[1],
+															lng: park.location.coordinates[0],
+															id: park._id
+														});
+													} catch (error) {
+														console.error('Error updating parking spot:', error);
+														// You might want to show an error message to the user here
+													}
 												}}>
 												NAVIGA
 											</button>
@@ -41,7 +59,7 @@ const ParkChoice = ({ data, destination }) => {
 												<span className="raleway-regular">{park.indirizzo}</span>
 											</div>
 											<div className='flex gap-3'>
-												<span className="raleway-semibold">Distanza:</span>
+												<span className="raleway-semibold">Distanza dalla destinazione:</span>
 												<span className="raleway-regular">{parseInt(park.distance)} mt</span>
 											</div>
 											<div className='flex gap-3'>
@@ -57,7 +75,7 @@ const ParkChoice = ({ data, destination }) => {
 												<span className="raleway-regular">{park.regolamento}</span>
 											</div>
 											<div className='flex gap-3'>
-												<span className="raleway-semibold">{park.disabili ? "Parcheggio per disabili" : "Parcheggio non per disabili"}</span>
+												<span className="raleway-semibold">{park.disabili ? "Parcheggio giallo per disabili" : "Parcheggio normale"}</span>
 											</div>
 										</div>
 									</div>
