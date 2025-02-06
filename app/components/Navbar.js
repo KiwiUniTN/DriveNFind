@@ -13,29 +13,42 @@ import {
 	useUser,
 } from "@clerk/nextjs";
 import { useEffect } from "react";
+
+const syncUser = async (token, mail) => {
+	 try {
+
+			const response = await fetch("/api/users/baseusers", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`,
+				},
+				body: JSON.stringify({ username: mail }),
+			});
+
+			if (!response.ok) {
+				throw new Error(`Failed to sync user: ${await response.text()}`);
+			}
+
+			console.log("User synced successfully");
+		} catch (error) {
+			console.error("Sync error:", error);
+		}
+};
 const Navbar = ({ className, spots }) => {
-	const { isSignedIn } = useAuth();
+	const { isSignedIn,getToken } = useAuth();
 	const { user } = useUser();
 	// Sincronizzo Clerk con il nostro db
 	
 	useEffect(() => {
-		if (isSignedIn && user && user != undefined) {
-			const syncUser = async () => {
-				try {
-					await fetch("/api/users/baseusers", {
-						method: "POST",
-						headers: { "Content-Type": "application/json" },
-						body: JSON.stringify({
-							username: user.emailAddresses[0].emailAddress,
-						}),
-					});
-				} catch (error) {
-					console.log("Error during authion sync:", error);
-					
-				}
-			};
-
-			syncUser();
+		if (isSignedIn && user) {
+			
+			const getUserTokenandSync = async () => {
+				const token = await getToken();
+				syncUser(token, user.emailAddresses[0].emailAddress);
+			}
+			getUserTokenandSync();
+			
 		}
 	}, [isSignedIn, user]);
 	return (

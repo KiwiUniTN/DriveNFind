@@ -2,6 +2,7 @@ import { connectToDB } from '../../../lib/database';
 import User from '../../../models/User';
 import { authorize } from '../../../middleware/auth';
 import bcrypt from 'bcrypt'; 
+import { clerkClient } from "@clerk/nextjs";
 
 export async function GET(req) {
   const authResult = authorize(req);
@@ -41,53 +42,45 @@ export async function GET(req) {
 
 
 export async function POST(req) {
-  // Parse the JSON body
-  const { username, password } = await req.json();
-  //clerk check 
-  try {
-    await connectToDB();
-    const existingUser = await User.findByUsername(username);
-    if(username && !password && existingUser){
-      return Response.json({ message: 'User already insert with Clerk' }, { status: 200 });
+  // clerk sync
+   try {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
-  } catch (error) {
-    console.log('Error checking clerk:', error);
-  }
-  // Basic input validation
-  if (!username && !password ) {
-    return Response.json({ message: 'Missing required fields' }, { status: 400 });
-  }
-  if (!username || !password) {
-    return Response.json({ message: 'Missing required fields' }, { status: 400 });
-  }
 
-  try {
+    const token = authHeader.split(" ")[1];
+
+    // Verify Clerk token
+    const session = await clerkClient.sessions.verifyToken(token);
+    if (!session) return Response.json({ error: "Invalid token" }, { status: 401 });
+
+    const userId = session.userId;
+    const clerkUser = await clerkClient.users.getUser(userId);
+
+    const email = clerkUser.emailAddresses[0]?.emailAddress;
+    if (!email) return Response.json({ error: "Email not found" }, { status: 400 });
+
     await connectToDB();
-    // Check if the username already exists
-    const existingUser = await User.findByUsername(username);
+
+    // Check if user exists in your DB
+    const existingUser = await User.findByUsername(email);
     if (existingUser) {
-      return Response.json({ message: 'Username already taken' }, { status: 400 });
+      return Response.json({ message: "User already inserted with Clerk" }, { status: 200 });
     }
 
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10); // Salt rounds = 10
+    // Generate a random secure password (not used for login)
+    const hashedPassword = await bcrypt.hash(userId, 10);
 
-    // Create a new user
-    const newUser = new User({
-      username,
-      password: hashedPassword,
-      role: 'baseuser', // Ensure the role is set to 'baseuser'
-    });
-
-    // Save the new user to the database
+    // Create new user
+    const newUser = new User({ username: email, password: hashedPassword, role: "baseuser" });
     await newUser.save();
 
-    // Return the success response
-    return Response.json({ message: 'User created successfully', user: newUser }, { status: 201 });
+    return Response.json({ message: "User created successfully", user: newUser }, { status: 201 });
   } catch (error) {
-    console.error('Error creating user:', error);
-    return Response.json({ message: 'Internal server error' }, { status: 500 });
-  }
+    console.error("Error syncing user:", error);
+    return Response.json({ error: "Internal server error" }, { status: 500 });
+  };
 }
 
 export async function DELETE(req) {
