@@ -3,11 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import "leaflet-routing-machine";
 import { useMap } from "react-leaflet";
 
-const RoutingMachine = ({ userLocation, destination }) => {
-	console.log("RoutingMachine is being rendered...");
-	console.log("userLocation:", userLocation);
-	console.log("destination:", destination);
-
+const RoutingMachine = ({ userLocation, destination, parkingId }) => {
 	const map = useMap();
 	const routingControlRef = useRef(null);
 	const [routeActive, setRouteActive] = useState(false);
@@ -16,14 +12,14 @@ const RoutingMachine = ({ userLocation, destination }) => {
 		if (!map || !userLocation || !destination) return;
 		const L = require("leaflet");
 		setRouteActive(true);
+
 		const routingControl = L.Routing.control({
 			waypoints: [
 				L.latLng(userLocation.lat, userLocation.lng),
 				L.latLng(destination.lat, destination.lng),
 			],
 			routeWhileDragging: false,
-
-			lineOptions: { styles: [{ color: "blue", weight: 4 }] }, // Route color
+			lineOptions: { styles: [{ color: "blue", weight: 4 }] },
 			router: L.Routing.osrmv1({
 				serviceUrl: "https://router.project-osrm.org/route/v1",
 				showAlternatives: true,
@@ -41,11 +37,12 @@ const RoutingMachine = ({ userLocation, destination }) => {
 						popupAnchor: [0, -27]
 					})
 				});
-				
 				return marker;
 			}
 		}).addTo(map);
+
 		routingControlRef.current = routingControl;
+
 		return () => {
 			if (routingControlRef.current) {
 				map.removeControl(routingControlRef.current);
@@ -53,33 +50,41 @@ const RoutingMachine = ({ userLocation, destination }) => {
 		};
 	}, [map, userLocation, destination]);
 
-	// Function to remove the route manually
-	const handleRemoveRoute = () => {
+	const handleRemoveRoute = async () => {
 		if (routingControlRef.current) {
 			try {
 				map.removeControl(routingControlRef.current);
 				routingControlRef.current = null;
-				setRouteActive(false); // ✅ Update state
+				setRouteActive(false);
+				const response = await fetch(`/api/parking-spots?id=${parkingId}&disponibilita=libero`, {
+					method: 'PATCH',
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				});
 
+				if (!response.ok) {
+					throw new Error('Failed to update parking spot status');
+				}
 			} catch (error) {
-				console.error("Errore nel rimuovere il routing:", error);
+				console.error("Error while removing route:", error);
 			}
 		}
 	};
-	if (!routeActive) return null;
 
 	return (
-		<div
-			className="leaflet-bottom leaflet-left"
-			style={{ position: 'absolute', zIndex: 1000 }}
-		>
-			<button
-				className="btn btn-accent m-4"
-				onClick={handleRemoveRoute}
-			>
-				Rimuovi Navigazione
-			</button>
-		</div>
+		<>
+			{routeActive && (
+				<div className="fixed bottom-8 left-8 z-[1000]">
+					<button
+						className="btn btn-error text-white px-4 py-2 rounded-lg shadow-lg bg-[#ad181a] hover:bg-slate-900 transition-colors border-none poppins-semibold"
+						onClick={handleRemoveRoute}
+					>
+						RIMUOVI NAVIGAZIONE
+					</button>
+				</div>
+			)}
+		</>
 	);
 };
 

@@ -52,7 +52,7 @@ const Navbar = ({ className }) => {
 			<div className='flex items-center justify-center w-1/12 h-16 mx-10 gap-2'>
 				<SignedOut>
 					<div className='dropdown dropdown-bottom dropdown-left flex items-center'>
-						<button className="btn btn-xs text-white bg-[#ad181a] border-none sm:btn-sm md:btn-md lg:btn-lg z-10 h-auto flex items-center">
+						<button className="poppins-semibold btn btn-xs text-white bg-[#ad181a] border-none sm:btn-sm md:btn-md lg:btn-lg z-10 h-auto flex items-center hover:bg-slate-900">
 							ACCEDI
 						</button>
 						<div className='dropdown-content card card-compact z-[1]'>

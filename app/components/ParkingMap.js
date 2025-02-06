@@ -24,7 +24,7 @@ function LocateUser({ setUserLocation, setError }) {
 				},
 				() => {
 					setError(
-						"Geolocalizzazione disattivata o mancata autorizzazione. Attivala per utilizzare a pieno l'applicazione."
+						"Geolocalizzazione disattivata o mancata autorizzazione. Attivala per utilizzare l'applicazione."
 					);
 					map.setView(DEFAULT_POSITION, 13);
 				}
@@ -46,7 +46,7 @@ var greenIcon = new LeafIcon({ iconUrl: "GreenMarker.png" }),
 	orangeIcon = new LeafIcon({ iconUrl: "OrangeMarker.png" });
 
 const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
-	const [errorLogin, setErrorLogin] = useState("");
+	const [errorLogin, setErrorLogin] = useState(null);
 	const { isSignedIn } = useAuth();
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [error, setError] = useState(null);
@@ -116,6 +116,7 @@ const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
 											setDestination({
 												lat: spot.location.coordinates[1],
 												lng: spot.location.coordinates[0],
+												id: spot._id
 											});
 										} catch (error) {
 											console.error('Error updating parking spot:', error);
@@ -161,7 +162,7 @@ const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
 														d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
 													/>
 												</svg>
-												<span>{errorLogin}</span>
+												<span className="raleway-regular">{errorLogin}</span>
 											</div>
 										)}
 									</>
@@ -172,9 +173,11 @@ const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
 				))}
 				{/* Routing Machine */}
 				{userLocation && destination && (
+					console.log(destination),
 					<RoutingMachine
 						userLocation={userLocation}
 						destination={destination}
+						parkingId={destination.id}
 					/>
 				)}
 			</MapContainer>
@@ -190,20 +193,24 @@ const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
 					<ParkChoice data={parkingOption} destination={setDestination} />
 				</div>
 			) : null}
-			{error && (<div role="alert" className="alert alert-error p-2 text-sm flex items-center gap-2">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					className="h-4 w-4 shrink-0 stroke-current"
-					fill="none"
-					viewBox="0 0 24 24">
-					<path
-						strokeLinecap="round"
-						strokeLinejoin="round"
-						strokeWidth="2"
-						d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-				</svg>
-				<span>{error}</span>
-			</div>)}
+			{error && (
+				<div className="fixed top-[12%] left-1/2 transform -translate-x-1/2 z-50 w-[90%] max-w-md">
+					<div role="alert" className="alert alert-error p-2 text-sm flex items-center gap-2">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							className="h-4 w-4 shrink-0 stroke-current"
+							fill="none"
+							viewBox="0 0 24 24">
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth="2"
+								d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+						</svg>
+						<span className="raleway-regular">{error}</span>
+					</div>
+				</div>
+			)}
 		</div>
 
 	);
