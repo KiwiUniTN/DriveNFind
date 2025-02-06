@@ -6,31 +6,32 @@ import React from 'react'
 
 
 const ParkCard = ({ parkingLot }) => {
-    return (
-			<div className='p-2'>
-				<div className='font-bold'>{parkingLot.nome}</div>
-				<div >
-					Disponibilità : <span>{parkingLot.disponibilita}</span>
-				</div>
-				<div>
-					Tipologia: <span>{parkingLot.tipologia}</span>
-				</div>
-				<div>
-					Regolamento: <span>{parkingLot.regolamento}</span>
-				</div>
-				<div>
-					Per disabili: <span>{parkingLot.disabile ? "Sì" : "No"}</span>
-				</div>
-				<div>
-					Alimentazione: <span>{parkingLot.alimentazione}</span>
-				</div>
-				<div>
-					<a href={parkingLot.link} target='_blank'>
-						Dettagli
-					</a>
-				</div>
+	return (
+		<div className='p-2'>
+			<div className='poppins-semibold'>{parkingLot.nome.toUpperCase()}</div>
+			<div className='raleway-semibold'>
+				Disponibilità :
+				<span className='raleway-regular'>{parkingLot.disponibilita}</span>
 			</div>
-		);
+			<div className='raleway-semibold'>
+				Tipologia: <span className='raleway-regular'>{parkingLot.tipologia}</span>
+			</div>
+			<div className='raleway-semibold'>
+				Regolamento: <span className='raleway-regular'>{parkingLot.regolamento}</span>
+			</div >
+			<div className='raleway-semibold'>
+				Parcheggio giallo per disabili: <span className='raleway-regular'>{parkingLot.disabile ? "Sì" : "No"}</span>
+			</div>
+			<div className='raleway-semibold'>
+				Alimentazione: <span className='raleway-regular'>{parkingLot.alimentazione}</span>
+			</div>
+			<div className='raleway-semibold'>
+				<a href={parkingLot.link} target='_blank'>
+					Dettagli
+				</a>
+			</div>
+		</div>
+	);
 }
 
 export default ParkCard

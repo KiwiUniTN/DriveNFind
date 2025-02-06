@@ -20,6 +20,9 @@ module.exports = {
 				azzurroChiaro: "var(--azzurroChiaro)",
 				beigeChiaro: "var(--beigeChiaro)",
 			},
+			fontFamily: {
+				poppins: ['Poppins', 'sans-serif'],
+			  },
 		},
 	},
 	plugins: [require("daisyui")],

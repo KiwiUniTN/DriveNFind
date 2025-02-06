@@ -1,7 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
+@import url('https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -26,5 +28,104 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Fira Sans", sans-serif;
+  font-weight: 300; /* Bold by default */
+}
+.raleway-regular  {
+  font-family: "Raleway", serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+.raleway-semibold {
+  font-family: "Raleway", serif;
+  font-weight: 600;
+  font-style: normal;
+}
+.raleway-bold  {
+  font-family: "Raleway", serif;
+  font-optical-sizing: auto;
+  font-weight: 900;
+  font-style: normal;
+}
+.poppins-semibold {
+  font-family: "Poppins", serif;
+  font-weight: 600;
+  font-style: normal;
+}
+.leaflet-routing-container {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: calc(100vh); /* Reduced height to create bottom gap */
+  background: white;
+  z-index: 1000;
+  width: 350px;
+  box-shadow: -2px 0 4px rgba(0,0,0,0.1);
+}
+
+.leaflet-routing-alt {
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  border: none !important;
+  margin: 20px 0;
+}
+
+.leaflet-routing-alt h2 {
+  font-size: 1.2rem;
+  font-family: "Popins", serif;
+  font-weight: 600;
+  font-style: normal;
+  color: #1a365d;
+  margin: 0.5rem 1rem;
+}
+.leaflet-routing-alt h3 {
+  font-size: 1rem;
+  font-family: "Raleway", serif;
+  font-weight: 900;
+  font-style: normal;
+  color: #000000;
+  margin: 0.5rem 1rem;
+}
+.leaflet-routing-alt tr {
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+}
+
+.leaflet-routing-alt td {
+  font-family: "Raleway", serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.leaflet-routing-alt td:first-child {
+  flex: 1;
+}
+
+.leaflet-routing-alt td:last-child {
+  text-align: right;
+  color: #4a5568;
+  min-width: 80px;
+  justify-content: flex-end;
+}
+
+.leaflet-routing-icon {
+  background-color: #ad181a;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.leaflet-routing-alt td span {
+  white-space: nowrap;
 }
