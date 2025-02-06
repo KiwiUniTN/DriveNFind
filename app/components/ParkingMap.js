@@ -87,9 +87,7 @@ const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
 							spot.location.coordinates[0],
 						]}
 						icon={
-							destination &&
-								destination.lat === spot.location.coordinates[1] &&
-								destination.lng === spot.location.coordinates[0]
+							spot.disponibilita === "navigazione"
 								? orangeIcon
 								: spot.disponibilita === "libero"
 									? greenIcon
@@ -100,55 +98,75 @@ const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
 							<ParkCard parkingLot={spot} />
 							{spot.disponibilita === "libero" ? (
 								<button
-									onClick={() =>
-										setDestination({
-											lat: spot.location.coordinates[1],
-											lng: spot.location.coordinates[0],
-										})
-									}
-									className='text-blue-600 underline'>
-									Naviga
-								</button>) : (
-								<>
-									<button
-										onClick={() => {
-											if (!isSignedIn) {
-												setErrorLogin("Devi aver fatto l'accesso per segnalare un parcheggio.");
-											} else {
-												setIsModalOpen(true)
-											}
-										}}
-										className="text-red-600 underline" //Cambiare colore
-									>
-										Segnala
-									</button>
-									<ReportModal
-										isOpen={isModalOpen}
-										onClose={() => setIsModalOpen(false)}
-										onSubmit={handleReportSubmit}
-									/>
+									onClick={async () => {
+										console.log("Naviga to:", spot._id);
+										try {
+											const response = await fetch(`/api/parking-spots?id=${spot._id}&disponibilita=navigazione`, {
+												method: 'PATCH',
+												headers: {
+													'Content-Type': 'application/json'
+												}
+											});
 
-									{/* Messaggio di errore visibile solo se c'è un errore */}
-									{errorLogin && (
-										<div role="alert" className="alert alert-error p-2 text-sm flex items-center gap-2 mt-2">
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												className="h-4 w-4 shrink-0 stroke-current"
-												fill="none"
-												viewBox="0 0 24 24"
-											>
-												<path
-													strokeLinecap="round"
-													strokeLinejoin="round"
-													strokeWidth="2"
-													d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-												/>
-											</svg>
-											<span>{errorLogin}</span>
-										</div>
-									)}
-								</>
-							)}
+											if (!response.ok) {
+												throw new Error('Failed to update parking spot');
+											}
+
+											// If the PATCH was successful, then update the destination
+											setDestination({
+												lat: spot.location.coordinates[1],
+												lng: spot.location.coordinates[0],
+											});
+										} catch (error) {
+											console.error('Error updating parking spot:', error);
+											// You might want to show an error message to the user here
+										}
+									}}
+									className='text-blue-600 underline raleway-semibold'
+								>
+									NAVIGA
+								</button>) : spot.disponibilita === "occupato" ? (
+									<>
+										<button
+											onClick={() => {
+												if (!isSignedIn) {
+													setErrorLogin("Devi aver fatto l'accesso per segnalare un parcheggio.");
+												} else {
+													setIsModalOpen(true)
+												}
+											}}
+											className="text-red-600 underline raleway-semibold"
+										>
+											SEGNALA
+										</button>
+										<ReportModal
+											isOpen={isModalOpen}
+											onClose={() => setIsModalOpen(false)}
+											onSubmit={handleReportSubmit}
+										/>
+
+										{/* Messaggio di errore visibile solo se c'è un errore */}
+										{errorLogin && (
+											<div role="alert" className="alert alert-error p-2 text-sm flex items-center gap-2 mt-2">
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													className="h-4 w-4 shrink-0 stroke-current"
+													fill="none"
+													viewBox="0 0 24 24"
+												>
+													<path
+														strokeLinecap="round"
+														strokeLinejoin="round"
+														strokeWidth="2"
+														d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+													/>
+												</svg>
+												<span>{errorLogin}</span>
+											</div>
+										)}
+									</>
+								) : null
+							}
 						</Popup>
 					</Marker>
 				))}

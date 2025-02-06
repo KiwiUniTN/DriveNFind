@@ -41,6 +41,7 @@ const RoutingMachine = ({ userLocation, destination }) => {
 						popupAnchor: [0, -27]
 					})
 				});
+				
 				return marker;
 			}
 		}).addTo(map);

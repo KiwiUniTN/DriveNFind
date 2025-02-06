@@ -75,3 +75,29 @@ export async function GET(req) {
     return new Response(JSON.stringify({ message: 'Server error', error: error.message }), { status: 500 });
   }
 }
+export async function PATCH(req) {
+  await connectToDB();
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get('id');
+  const newDisponibilita = searchParams.get('disponibilita');
+
+  if (!id || !newDisponibilita) {
+    return new Response(JSON.stringify({ message: 'Missing id or disponibilita' }), { status: 400 });
+  }
+
+  try {
+    const updatedParkingSpot = await ParkingSpot.findOneAndUpdate(
+      { _id: id },
+      { disponibilita: newDisponibilita },
+      { new: true }
+    );
+
+    if (!updatedParkingSpot) {
+      return new Response(JSON.stringify({ message: 'Parking spot not found' }), { status: 404 });
+    }
+
+    return new Response(JSON.stringify(updatedParkingSpot), { status: 200 });
+  } catch (error) {
+    return new Response(JSON.stringify({ message: 'Server error', error: error.message }), { status: 500 });
+  }
+}

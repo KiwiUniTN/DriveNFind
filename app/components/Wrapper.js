@@ -21,6 +21,7 @@ const Wrapper = ({ prevSpots }) => {
 				throw new Error(`Failed to fetch data: ${response.statusText}`);
 			}
 			const data = await response.json();
+			console.log("Fetched parking spots:", data);
 			setSpots(data); // Update spots based on search results
 			return data;
 		} catch (error) {
