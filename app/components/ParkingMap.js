@@ -1,5 +1,6 @@
 "use client";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import ReportModal from "./ReportModal";
@@ -55,6 +56,7 @@ const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
 	const [userLocation, setUserLocation] = useState(null);
 	const [destination, setDestination] = useState(null);
 	const [parkingOption, setParkingOption] = useState(null);
+	const popupRef = useRef(null);
 
 	const handleReportSubmit = (data) => {
 		console.log("Report Data:", data);
@@ -89,24 +91,17 @@ const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
 				{!error && parkingSpots.map((spot, index) => (
 					<Marker
 						key={index}
-						position={[
-							spot.location.coordinates[1],
-							spot.location.coordinates[0],
-						]}
-						icon={
-							spot.disponibilita === "navigazione"
-								? orangeIcon
-								: spot.disponibilita === "libero"
-									? greenIcon
-									: redIcon
+						position={[spot.location.coordinates[1],spot.location.coordinates[0],]}
+						icon={spot.disponibilita === "navigazione"? orangeIcon : spot.disponibilita === "libero" ? greenIcon : redIcon
 						}
 					>
-						<Popup>
+						<Popup ref={popupRef}>
 							<ParkCard parkingLot={spot} />
 							{spot.disponibilita === "libero" ? (
 								<button
 									onClick={async () => {
 										console.log("Naviga to:", spot._id);
+										console.log("Popup ref before closing:", popupRef.current);
 										try {
 											const response = await fetch(`/api/parking-spots?id=${spot._id}&disponibilita=navigazione`, {
 												method: 'PATCH',
@@ -118,7 +113,9 @@ const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
 											if (!response.ok) {
 												throw new Error('Failed to update parking spot');
 											}
-
+											if (popupRef.current) {
+												popupRef.current.remove();
+											}
 											// If the PATCH was successful, then update the destination
 											setDestination({
 												lat: spot.location.coordinates[1],
@@ -187,6 +184,7 @@ const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
 							destination={destination}
 							parkingId={destination.id}
 							refreshSpots={refreshSpots}
+							parkingSpots={spots}
 						/>
 					</div>
 
@@ -222,19 +220,19 @@ const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
 			</div>) : null}
 			{error && (
 				<div role="alert" className="alert alert-error p-2 text-sm flex items-center gap-2">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					className="h-4 w-4 shrink-0 stroke-current"
-					fill="none"
-					viewBox="0 0 24 24">
-					<path
-						strokeLinecap="round"
-						strokeLinejoin="round"
-						strokeWidth="2"
-						d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-				</svg>
-				<span className="raleway-regular">{error}</span>
-			</div>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						className="h-4 w-4 shrink-0 stroke-current"
+						fill="none"
+						viewBox="0 0 24 24">
+						<path
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							strokeWidth="2"
+							d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+					</svg>
+					<span className="raleway-regular">{error}</span>
+				</div>
 			)}
 		</div>
 
