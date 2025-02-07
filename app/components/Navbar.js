@@ -34,7 +34,7 @@ const syncUser = async (token, mail) => {
 	}
 };
 const Navbar = ({ className }) => {
-	const { isSignedIn } = useAuth();
+	const { isSignedIn,getToken } = useAuth();
 	const { user } = useUser();
 	// Sincronizzo Clerk con il nostro db
 	useEffect(() => {

@@ -1,8 +1,9 @@
 import { useState } from "react";
 
-const ReportModal = ({ isOpen, onClose, onSubmit }) => {
+const ReportModal = ({ isOpen, onClose, onSubmit,parkId }) => {
     const [image, setImage] = useState(null);
     const [description, setDescription] = useState("");
+    const [lotId, setLotId] = useState(parkId);
 
     const handleImageChange = (event) => {
         const file = event.target.files[0];
@@ -12,7 +13,7 @@ const ReportModal = ({ isOpen, onClose, onSubmit }) => {
     };
 
     const handleSubmit = () => {
-        onSubmit({ image, description });
+        onSubmit({ image, description, lotId });
         onClose();
     };
 
