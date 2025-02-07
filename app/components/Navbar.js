@@ -3,7 +3,6 @@ import React from "react";
 import Image from "next/image";
 import Reports from "./Reports";
 
-
 import {
 	SignedIn,
 	SignedOut,
@@ -13,28 +12,38 @@ import {
 	useUser,
 } from "@clerk/nextjs";
 import { useEffect } from "react";
+
+const syncUser = async (token, mail) => {
+	try {
+		const response = await fetch("/api/users/baseusers", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
+			},
+			body: JSON.stringify({ username: mail }),
+		});
+
+		if (!response.ok) {
+			throw new Error(`Failed to sync user: ${await response.text()}`);
+		}
+
+		console.log("User synced successfully");
+	} catch (error) {
+		console.error("Sync error:", error);
+	}
+};
 const Navbar = ({ className }) => {
 	const { isSignedIn } = useAuth();
 	const { user } = useUser();
 	// Sincronizzo Clerk con il nostro db
-
 	useEffect(() => {
-		if (isSignedIn && user && user != undefined) {
-			const syncUser = async () => {
-				try {
-					await fetch("/api/users/baseusers", {
-						method: "POST",
-						headers: { "Content-Type": "application/json" },
-						body: JSON.stringify({
-							username: user.emailAddresses[0].emailAddress,
-						}),
-					});
-					console.log(body)
-				} catch (error) {
-					console.log("Error during authion sync:", error);
-				}
+		if (isSignedIn && user) {
+			const getUserTokenandSync = async () => {
+				const token = await getToken();
+				syncUser(token, user.emailAddresses[0].emailAddress);
 			};
-			syncUser();
+			getUserTokenandSync();
 		}
 	}, [isSignedIn, user]);
 	return (
@@ -52,7 +61,7 @@ const Navbar = ({ className }) => {
 			<div className='flex items-center justify-center w-1/12 h-16 mx-10 gap-2'>
 				<SignedOut>
 					<div className='dropdown dropdown-bottom dropdown-left flex items-center'>
-						<button className="poppins-semibold btn btn-xs text-white bg-[#ad181a] border-none sm:btn-sm md:btn-md lg:btn-lg z-10 h-auto flex items-center hover:bg-slate-900">
+						<button className='poppins-semibold btn btn-xs text-white bg-[#ad181a] border-none sm:btn-sm md:btn-md lg:btn-lg z-10 h-auto flex items-center hover:bg-slate-900'>
 							ACCEDI
 						</button>
 						<div className='dropdown-content card card-compact z-[1]'>
@@ -63,8 +72,8 @@ const Navbar = ({ className }) => {
 					</div>
 				</SignedOut>
 				<SignedIn>
-					<Reports className="raleway-regular"/>
-					<UserButton showName className="raleway-regular"/>
+					<Reports className='raleway-regular' />
+					<UserButton showName className='raleway-regular' />
 				</SignedIn>
 			</div>
 		</nav>
