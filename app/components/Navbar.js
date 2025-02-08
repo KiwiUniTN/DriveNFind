@@ -11,7 +11,8 @@ import {
 	useAuth,
 	useUser,
 } from "@clerk/nextjs";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 
 const syncUser = async (token, mail) => {
 	try {
@@ -34,8 +35,17 @@ const syncUser = async (token, mail) => {
 	}
 };
 const Navbar = ({ className }) => {
-	const { isSignedIn,getToken } = useAuth();
+	const { isSignedIn, getToken } = useAuth();
 	const { user } = useUser();
+	const [isClient, setIsClient] = useState(false); // State to check if it's client-side
+	const pathname = usePathname();// State to hold the router object
+
+	// Only run useRouter on the client-side
+	useEffect(() => {
+		setIsClient(true);
+	}, []);
+
+	const isOnReportsPage = pathname === "/reports";
 	// Sincronizzo Clerk con il nostro db
 	useEffect(() => {
 		if (isSignedIn && user) {
@@ -72,8 +82,10 @@ const Navbar = ({ className }) => {
 					</div>
 				</SignedOut>
 				<SignedIn>
-					<Link href='reports' className='raleway-regular'>
-						Segnalazioni
+					<Link
+						href={isOnReportsPage ? "/" : "/reports"}
+						className='raleway-regular btn btn-outline'>
+						{isOnReportsPage ? "Home" : "Segnalazioni"}
 					</Link>
 					<UserButton showName className='raleway-regular' />
 				</SignedIn>

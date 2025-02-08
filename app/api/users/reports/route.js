@@ -36,7 +36,7 @@ export async function GET(req) {
 
     // base users can see only their
     const reports = await Report.find({ username: userAuth.user.username });
-    if (!reports || reports.length === 0) {
+    if (!reports) {
       throw new Error("No reports found");
     } else {
       return new Response(JSON.stringify(reports), { status: 200 });

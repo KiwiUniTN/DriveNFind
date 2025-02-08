@@ -11,6 +11,7 @@ const page = () => {
 	const [isAdmin, setIsAdmin] = useState(false);
 	const [user, setUser] = useState(null);
 	const [reports, setReports] = useState(null);
+	const [haveReports, setHaveReports] = useState(false);
 
 	const getJWT = async () => {
 		if (clerkUser) {
@@ -66,7 +67,7 @@ const page = () => {
 				},
 			});
 			if (!response.ok) {
-				console.error("Failed to fetch reports:", response.status);
+				console.error("Failed to fetch reports:", response);
 				return;
 			}
 			const data = await response.json();
@@ -75,9 +76,14 @@ const page = () => {
 		};
 		loadReports();
 	}, [token]);
+	useEffect(() => {
+		if(Array.isArray(reports) && reports.length > 0){
+			setHaveReports(true);
+		}
+	}, [reports]);
 	return (
 		<div className='flex flex-col min-h-screen bg-white'>
-			<Navbar className='w-full h-[10%] z-50' />
+			<Navbar className='w-full h-[10%] z-50'  />
 			<div className='flex flex-col items-center justify-center w-full p-4'>
 				<div className='w-full h-[10%] flex justify-center items-center'>
 					<h1 className='raleway-regular'>
@@ -87,9 +93,26 @@ const page = () => {
 				{/* Scrollable reports container */}
 				<div className='flex gap-5 flex-wrap justify-center items-center w-full max-h-[70vh] overflow-y-auto p-2'>
 					{reports ? (
-						reports.map((report, index) => (
-							<ReportCard key={index} report={report} getJWT = {getJWT}/>
-						))
+						haveReports ? (
+							reports.map((report, index) => (
+								<ReportCard key={index} report={report} getJWT={getJWT} />
+							))
+						) : (
+							<div role='alert' className='alert alert-info'>
+								<svg
+									xmlns='http://www.w3.org/2000/svg'
+									fill='none'
+									viewBox='0 0 24 24'
+									className='h-6 w-6 shrink-0 stroke-current'>
+									<path
+										strokeLinecap='round'
+										strokeLinejoin='round'
+										strokeWidth='2'
+										d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'></path>
+								</svg>
+								<span>Nessuna Segnalazione Trovata</span>
+							</div>
+						)
 					) : (
 						<div className='loading loading-spinner'></div>
 					)}

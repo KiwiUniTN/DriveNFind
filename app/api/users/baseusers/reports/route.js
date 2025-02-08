@@ -108,7 +108,7 @@ export async function POST(req, res) {
 		);
 	}
 }
-/* elimina una segnalazione dato l'Id messo nel body in questo modo {"id" : <id>} */
+/* elimina una segnalazione dato l'Id */
 export async function DELETE(req) {
     const { searchParams } = new URL(req.url);
   	const id = searchParams.get('id');
