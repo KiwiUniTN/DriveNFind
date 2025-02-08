@@ -17,7 +17,7 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const getAllFlag = 'true' === searchParams.get('getAll');
     let baseUsers;
-
+    
     if (!getAllFlag && role == 'admin') {
       baseUsers = await User.findByUsername(username,{password:0});
     } else if (getAllFlag && role == 'admin') {
@@ -45,14 +45,15 @@ export async function POST(req) {
     }
   
     // Parse the JSON body
-    const { username:newUsername, password } = await req.json();
+    const { username:newUsername, password } = typeof req.json === 'function' ? await req.json() : req.body;
   
     // Basic input validation
     if (!newUsername || !password) {
       return Response.json({ message: 'Missing required fields' }, { status: 400 });
     }
-  await connectToDB();
+  
     try {
+      await connectToDB();
       // Check if the username already exists
       
       const existingUser = await User.findByUsername(newUsername);
@@ -71,30 +72,32 @@ export async function POST(req) {
       });
         
       // Save the new user to the database
-      await newUser.save();
+      const savedUser = await newUser.save();
       // Return the success response
-      return Response.json({ message: 'Admin user created successfully', user: newUser }, { status: 201 });
+      return Response.json({ message: 'Admin user created successfully', user: savedUser }, { status: 201 });
     } catch (error) {
-      console.error('Error creating admin user:', error);
+      // console.error('Error creating admin user:', error);
       return Response.json({ message: 'Internal server error' }, { status: 500 });
     }
   }
 
   export async function DELETE(req) {
-		try {
-			const { searchParams } = new URL(req.url);
-			const targetUsername = searchParams.get("targetUsername");
+		
+    const { searchParams } = new URL(req.url);
+    const targetUsername = searchParams.get("targetUsername");
 
-			// Authorize the request
-			const authResult = await authorizeRole(["admin"])(req); // Assume this returns { authorized, user }
-			if (!authResult.authorized) {
-				return authResult.response; // Return error response if unauthorized
-			}
+    // Authorize the request
+    const authResult = await authorizeRole(["admin"])(req); // Assume this returns { authorized, user }
+    if (!authResult.authorized) {
+      return authResult.response; // Return error response if unauthorized
+    }
 
-			const { user } = authResult; // The authenticated user
-			const { username: currentUsername } = user;
-
+    const { user } = authResult; // The authenticated user
+    const { username: currentUsername } = user;
+    try {
+      // console.log('prima')
 			await connectToDB();
+      // console.log('dopo')
 
 			// Admins can delete their own account
 			if (targetUsername === null) {
@@ -132,7 +135,7 @@ export async function POST(req) {
 				);
 			}
 		} catch (error) {
-			console.error("Error processing DELETE request:", error);
+			// console.error("Error processing DELETE request:", error);
 			return Response.json(
 				{ message: "Internal server error." },
 				{ status: 500 }
