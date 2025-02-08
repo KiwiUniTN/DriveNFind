@@ -10,7 +10,11 @@ const ParkCard = ({ parkingLot }) => {
 		<div className='p-2'>
 			<div className='poppins-semibold'>{parkingLot.nome.toUpperCase()}</div>
 			<div className='raleway-semibold'>
-				Disponibilità :
+				Indirizzo:
+				<span className='raleway-regular'>{parkingLot.indirizzo.charAt(0).toUpperCase()+parkingLot.indirizzo.slice(1)}</span>
+			</div>
+			<div className='raleway-semibold'>
+				Disponibilità:
 				<span className='raleway-regular'>{parkingLot.disponibilita}</span>
 			</div>
 			<div className='raleway-semibold'>
@@ -20,7 +24,7 @@ const ParkCard = ({ parkingLot }) => {
 				Regolamento: <span className='raleway-regular'>{parkingLot.regolamento}</span>
 			</div >
 			<div className='raleway-semibold'>
-				Parcheggio giallo per disabili: <span className='raleway-regular'>{parkingLot.disabile ? "Sì" : "No"}</span>
+				Parcheggio giallo per disabili: <span className='raleway-regular'>{parkingLot.disabile ? "sì" : "no"}</span>
 			</div>
 			<div className='raleway-semibold'>
 				Alimentazione: <span className='raleway-regular'>{parkingLot.alimentazione}</span>

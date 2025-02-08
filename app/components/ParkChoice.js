@@ -56,7 +56,7 @@ const ParkChoice = ({ data, destination }) => {
 										<div>
 											<div className='flex gap-3'>
 												<span className="raleway-semibold">Indirizzo:</span>
-												<span className="raleway-regular">{park.indirizzo}</span>
+												<span className="raleway-regular">{park.indirizzo.charAt(0).toUpperCase()+park.indirizzo.slice(1)}</span>
 											</div>
 											<div className='flex gap-3'>
 												<span className="raleway-semibold">Distanza dalla destinazione:</span>
