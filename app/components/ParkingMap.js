@@ -68,7 +68,7 @@ const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
 			},
 			body: JSON.stringify({
 				username: user.emailAddresses[0]?.emailAddress,
-				password: user.id, 
+				password: user.id,
 			}),
 		});
 
@@ -79,19 +79,19 @@ const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
 
 		const data = await response.json(); // Parse the response
 		const token = data.token;
-		console.log("Token:", token);
+		console.log("imageFile:", parkData);
+		const formData = new FormData();
+		formData.append("parkingLotId", parkData.lotId);
+		formData.append("description", parkData.description);
+		formData.append("image", parkData.image);
+		console.log("Image File prova:", parkData.image); 
 		// Send data to API or handle submission
 		fetch(`/api/users/baseusers/reports`, {
 			method: "POST",
 			headers: {
-				"Content-Type": "application/json",
 				Authorization: `Bearer ${token}`,
 			},
-			body: JSON.stringify({
-				parkingLotId: parkData.lotId,
-				description: parkData.description,
-				imageUrl: parkData.imageUrl,
-			}),
+			body: formData,
 		})
 			.then((response) => {
 				if (!response.ok) {

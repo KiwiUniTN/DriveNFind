@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import Image from "next/image";
-import Reports from "./Reports";
+import Link from "next/link";
 
 import {
 	SignedIn,
@@ -48,7 +48,7 @@ const Navbar = ({ className }) => {
 	}, [isSignedIn, user]);
 	return (
 		<nav
-			className={`${className} flex flex-wrap p-1 justify-between align-middle`}>
+			className={`${className} bg-[#ffffe3] flex flex-wrap p-1 justify-between align-middle`}>
 			<div className='relative w-1/12 h-16'>
 				<Image
 					src='/LogoDriveNFind.png'
@@ -72,7 +72,9 @@ const Navbar = ({ className }) => {
 					</div>
 				</SignedOut>
 				<SignedIn>
-					<Reports className='raleway-regular' />
+					<Link href='reports' className='raleway-regular'>
+						Segnalazioni
+					</Link>
 					<UserButton showName className='raleway-regular' />
 				</SignedIn>
 			</div>

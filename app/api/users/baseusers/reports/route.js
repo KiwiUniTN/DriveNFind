@@ -1,6 +1,8 @@
 import { authorizeRole } from "@/app/middleware/auth";
 import Report from "@/app/models/Report";
 import mongoose from "mongoose";
+import cloudinary from "@/app/lib/cloudinary";
+import { Readable } from "stream";
 /* crea un report dato nel body della richiesta 
     "parkingLotId": id del parcheggio,
     "description": "descrizione del problema",
@@ -11,55 +13,92 @@ export async function POST(req, res) {
 	let body;
 	try {
 		userAuth = await validateUser(req);
-		body = await req.json();
+		body = await req.formData();
 	} catch (error) {
 		return new Response(JSON.stringify({ message: error.message }), {
 			status: 403,
 		});
 	}
 
-	console.log("Received body:", body);
-	console.log("parkingLotId type:", typeof body.parkingLotId);
-	console.log("parkingLotId value:", body.parkingLotId);
-
-	let parkingLotId;
+	let parkingLotId = body.get("parkingLotId"); 
 	try {
 		// Check if the ID is valid before trying to convert it
-		if (!mongoose.Types.ObjectId.isValid(body.parkingLotId)) {
+		if (!mongoose.Types.ObjectId.isValid(parkingLotId)) {
 			console.log("ID validation failed");
 			return new Response(
 				JSON.stringify({
 					message: "Invalid parkingLotId format",
-					receivedId: body.parkingLotId,
+					receivedId: parkingLotId,
 				}),
 				{ status: 400 }
 			);
 		}
 
-		parkingLotId = new mongoose.Types.ObjectId(body.parkingLotId);
-		console.log("Successfully converted to ObjectId:", parkingLotId);
+		parkingLotId = new mongoose.Types.ObjectId(parkingLotId);
 	} catch (error) {
 		console.error("Error details:", error);
 		return new Response(
 			JSON.stringify({
 				message: "Invalid parkingLotId format",
 				error: error.message,
-				receivedId: body.parkingLotId,
+				receivedId: parkingLotId,
 			}),
 			{ status: 400 }
 		);
 	}
 
+	
+	//Upload image to cloudinary
+	let cloudinaryUrl = null;
+	const imageFile = body.get("image"); // Get image from formData
+	if (imageFile && imageFile instanceof Blob) {
+		try {
+			const arrayBuffer = await imageFile.arrayBuffer();
+			const buffer = Buffer.from(arrayBuffer);
+
+			// Convert buffer to readable stream
+			const stream = Readable.from(buffer);
+
+			// Upload using Cloudinary's stream upload
+			const uploadResponse = await new Promise((resolve, reject) => {
+				const cloudinaryStream = cloudinary.uploader.upload_stream(
+					{ folder: "nextjs_reports" },
+					(error, result) => {
+						if (error) reject(error);
+						else resolve(result);
+					}
+				);
+				stream.pipe(cloudinaryStream);
+			});
+
+			cloudinaryUrl = uploadResponse.secure_url;
+		} catch (uploadError) {
+			console.error("Image upload error:", uploadError);
+			return new Response(
+				JSON.stringify({
+					message: "Image upload failed",
+					error: uploadError.message,
+				}),
+				{ status: 500 }
+			);
+		}
+	} else {
+		console.error("Invalid image file:", imageFile);
+		return new Response(JSON.stringify({ message: "Invalid image format" }), {
+			status: 400,
+		});
+	}
+
+
 	const newReport = {
 		parkingLotId: parkingLotId,
 		username: userAuth.user.username,
-		description: body.description,
+		description: body.get("description"),
 		status: "In sospeso",
-		imageUrl: body.imageUrl,
+		imageUrl: cloudinaryUrl,
 	};
 
 	try {
-		console.log("Creating report:", newReport);
 		const createdReport = await Report.create(newReport);
 		return new Response(JSON.stringify(createdReport), { status: 201 });
 	} catch (error) {

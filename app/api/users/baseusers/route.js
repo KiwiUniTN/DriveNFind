@@ -2,7 +2,7 @@ import { connectToDB } from "../../../lib/database";
 import User from "../../../models/User";
 import { authorize } from "../../../middleware/auth";
 import bcrypt from "bcrypt";
-import { auth,clerkClient, clerkMiddleware,verifyToken,currentUser } from "@clerk/nextjs/server";
+import { auth,currentUser } from "@clerk/nextjs/server";
 
 export async function GET(req) {
 	const authResult = authorize(req);

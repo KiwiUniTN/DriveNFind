@@ -1,13 +1,13 @@
 import { authorize, authorizeRole } from "@/app/middleware/auth";
 import Report from "@/app/models/Report";
 import { connectToDB } from "../../../lib/database";
-import { SERVER_PROPS_GET_INIT_PROPS_CONFLICT } from "next/dist/lib/constants";
 //TODO:modificarfe la documentazione
 // se il reportId è presente ritorno il report con quell'id altrimenti ritorno tutti i report dell'utente se baseuser. Se admin ritorno tutti i report
 export async function GET(req) {
 	try {
 		const url = new URL(req.url);
 		const id = url.searchParams.get("reportId");
+    
 		await connectToDB();
 		const userAuth =  authorize(req);
 		if (!userAuth.authorized) {

@@ -30,7 +30,7 @@ const Wrapper = ({ prevSpots }) => {
 	};
 	return (
 		<div className="fixed inset-0 flex flex-col">
-			<Navbar className="w-full h-[10%] z-50 bg-[#ffffe3]" />
+			<Navbar className="w-full h-[10%] z-50 " />
 			<div className="flex-1 w-full">
 				<ParkingMap parkingSpots={spots} refreshSpots={fetchNewSpots} cardSpots={fetchNewSpots} />
 			</div>
