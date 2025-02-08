@@ -41,16 +41,25 @@ const page = () => {
 		const fetchToken = async () => {
 			const jwt = await getJWT();
 			setToken(jwt);
-
 			if (jwt) {
-				const req = {
-					headers: new Headers({
-						authorization: `Bearer ${jwt}`,
-					}),
-				};
-				const { authorized, user } = await authorizeRole(["admin"])(req);
-				setIsAdmin(authorized);
-				setUser(user);
+				try {
+					const response = await fetch("/api/verify-role", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: `Bearer ${jwt}`,
+						},
+						body: JSON.stringify(["admin"]),
+					});
+
+					const data = await response.json();
+					setIsAdmin(data.authorized);
+					setUser(data.user);
+					console.log("User:", data.authorized);
+					console.log("Role:", data.user);
+				} catch (error) {
+					console.error("Authorization failed:", error);
+				}
 			}
 		};
 		fetchToken();
@@ -77,13 +86,13 @@ const page = () => {
 		loadReports();
 	}, [token]);
 	useEffect(() => {
-		if(Array.isArray(reports) && reports.length > 0){
+		if (Array.isArray(reports) && reports.length > 0) {
 			setHaveReports(true);
 		}
 	}, [reports]);
 	return (
 		<div className='flex flex-col min-h-screen bg-white'>
-			<Navbar className='w-full h-[10%] z-50'  />
+			<Navbar className='w-full h-[10%] z-50' />
 			<div className='flex flex-col items-center justify-center w-full p-4'>
 				<div className='w-full h-[10%] flex justify-center items-center'>
 					<h1 className='raleway-regular'>
@@ -95,7 +104,12 @@ const page = () => {
 					{reports ? (
 						haveReports ? (
 							reports.map((report, index) => (
-								<ReportCard key={index} report={report} getJWT={getJWT} />
+								<ReportCard
+									key={index}
+									report={report}
+									getJWT={getJWT}
+									isAdmin={isAdmin}
+								/>
 							))
 						) : (
 							<div role='alert' className='alert alert-info'>
@@ -120,7 +134,6 @@ const page = () => {
 			</div>
 		</div>
 	);
-
 };
 
 export default page;

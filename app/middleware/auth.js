@@ -16,6 +16,7 @@ export function authorize(req) {
 		};
 	}
 
+  console.log(process.env.JWT_SECRET);
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     return { authorized: true, user: decoded };
@@ -28,7 +29,8 @@ export function authorize(req) {
 export function authorizeRole(allowedRoles) {
   return async (req) => {
     const authResult = authorize(req);
-
+    console.log('Authorization result:');
+    console.log('Authorization result:', authResult);
     if (!authResult.authorized) {
       // If the user is not authorized, return the error response
       return authResult;

@@ -38,16 +38,16 @@
 
             //Genero un token JWT con l'ID dell'utente e il ruolo
             const token = jwt.sign(
-                {
-                    userId: user._id,
-                    username: user.username,
-                    role: user.role
-                },
-                //Utilizzo la chiave segreta per firmare il token nel file .env.local creabile con openssl rand -hex 64
-                process.env.JWT_SECRET,
-                //Imposto la scadenza del token a 1 ora (questo possiamo cambiarlo a nostro piacimento)
-                { expiresIn: process.env.JWT_EXPIRY }
-            );
+							{
+								userId: user._id,
+								username: user.username,
+								role: user.role,
+							},
+							//Utilizzo la chiave segreta per firmare il token nel file .env.local creabile con openssl rand -hex 64
+							process.env.JWT_SECRET,
+							//Imposto la scadenza del token a 1 ora (questo possiamo cambiarlo a nostro piacimento)
+							{ expiresIn: process.env.JWT_EXPIRY }
+						);
             //Rispondo con il token
             return new Response(
                 JSON.stringify({ token }),
