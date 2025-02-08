@@ -59,8 +59,6 @@ const page = () => {
 			if (!token) {
 				return;
 			}
-			console.log("Fetching reports...");
-			console.log("Token before fetch:", token);
 			const response = await fetch(`/api/users/reports`, {
 				method: "GET",
 				headers: {
@@ -78,20 +76,20 @@ const page = () => {
 		loadReports();
 	}, [token]);
 	return (
-		<div className='fixed inset-0 flex flex-col align-center bg-white'>
-			<Navbar className='w-full h-[10%] z-50 ' />
-			<div className="flex flex-col items-center justify-center w-full h-full">
+		<div className='flex flex-col min-h-screen bg-white'>
+			<Navbar className='w-full h-[10%] z-50' />
+			<div className='flex flex-col items-center justify-center w-full p-4'>
 				<div className='w-full h-[10%] flex justify-center items-center'>
 					<h1 className='raleway-regular'>
 						{isAdmin ? "Segnalazioni" : "Le Tue Segnalazioni"}
 					</h1>
-				</div >
-				<div className="flex gap-5 flex-wrap justify-center items-center w-full h-[90%] overflow-y-auto">
+				</div>
+				{/* Scrollable reports container */}
+				<div className='flex gap-5 flex-wrap justify-center items-center w-full max-h-[70vh] overflow-y-auto p-2'>
 					{reports ? (
-						reports.map((report, index) => {
-		
-							return <ReportCard key={index} report={report} />;
-						})
+						reports.map((report, index) => (
+							<ReportCard key={index} report={report} getJWT = {getJWT}/>
+						))
 					) : (
 						<div className='loading loading-spinner'></div>
 					)}
@@ -99,6 +97,7 @@ const page = () => {
 			</div>
 		</div>
 	);
+
 };
 
 export default page;
