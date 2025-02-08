@@ -5,9 +5,10 @@ import bcrypt from 'bcrypt';
 
 export async function GET(req) {
   const authResult = await authorizeRole(['admin'])(req);
-
+  
   if (!authResult.authorized) {
-    return authResult.response; // Return the error response from the middleware
+    // console.log("sono dentro")
+    return Response.json({ error: 'Forbidden' }, { status: 403 });
   }
   //Destrutturare l'oggetto user per ottenere username e ruolo
   //const { user } = authResult;
@@ -27,7 +28,7 @@ export async function GET(req) {
 
 export async function PATCH(req) {
   // Parse request body
-  const { username: targetUsername, newPassword, newRole } = await req.json();
+  const { username: targetUsername, newPassword, newRole } = typeof req.json === 'function' ? await req.json() : req.body;
   
   // Authorize the user
   const authResult = authorize(req);
@@ -40,10 +41,15 @@ export async function PATCH(req) {
 
   try {
     await connectToDB();
-
+      // console.log(targetUsername!=currentUsername)
+      // console.log(targetUsername);
+      // console.log(currentUsername);
+      // console.log(newPassword);
     // If updating password (for self only)
     if (newPassword) {
+      
       if (targetUsername!=null) {
+        // console.log('sono dentro');
         return Response.json(
           { message: 'You can only change your own password.' },
           { status: 403 }
@@ -92,7 +98,7 @@ export async function PATCH(req) {
           { status: 404 }
         );
       }
-
+      // console.log('new role')
       return Response.json(
         { message: `Role updated successfully for ${targetUsername}.`, user: updatedUser },
         { status: 200 }
@@ -105,7 +111,7 @@ export async function PATCH(req) {
       { status: 400 }
     );
   } catch (error) {
-    console.error('Error processing PATCH request:', error);
+    // console.error('Error processing PATCH request:', error);
     return Response.json(
       { message: 'Internal server error.' },
       { status: 500 }

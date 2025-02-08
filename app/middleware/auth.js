@@ -1,12 +1,14 @@
 import jwt from 'jsonwebtoken';
 
-export function authorize(req) {
-  const token = req.headers.get('authorization')?.split(' ')[1];
-  console.log('Authorization token:', token);
-
+export const authorize = (req) => {
+  const headers = new Headers(req.headers);
+  const token = headers.get('authorization')?.split(' ')[1];
+  // const token = req.headers?.authorization?.split(' ')[1];
+  // console.log('Authorization token:', token);
+  // console.log(token)
   if (!token || token === undefined) {
 		// If no token is provided, return an error response
-    console.error("No authorization token provided");
+    // console.error("No authorization token provided");
 		return {
 			authorized: false,
 			response: Response.json(
@@ -27,15 +29,18 @@ export function authorize(req) {
 
 export function authorizeRole(allowedRoles) {
   return async (req) => {
+  
     const authResult = authorize(req);
-
+    // console.log(authResult)
     if (!authResult.authorized) {
       // If the user is not authorized, return the error response
       return authResult;
     }
 
     const { user } = authResult;
-
+    // console.log(user.role)
+    // console.log(allowedRoles)
+    // console.log(!allowedRoles.includes(user.role))
     if (!allowedRoles.includes(user.role)) {
       // If the user does not have the required role, return an error response
       return { authorized: false, response: Response.json({ message: 'Forbidden - insufficient permissions' }, { status: 403 }) };

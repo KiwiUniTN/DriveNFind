@@ -1,5 +1,6 @@
-import { authorizeRole } from "@/app/middleware/auth";
-import Report from "@/app/models/Report";
+import { authorizeRole } from "../../../../../app/middleware/auth";
+import Report from "../../../../../app/models/Report";
+import { connectToDB } from '../../../../../app/lib/database';
 /* crea un report dato nel body della richiesta 
     "parkingLotId": id del parcheggio,
     "description": "descrizione del problema",
@@ -7,60 +8,84 @@ import Report from "@/app/models/Report";
 
 export async function POST(req, res) {
 	// Authenticate user based on the provided token
-    let userAuth;
-    let body;
-	try {
-		userAuth= await validateUser(req);
-		body = await req.json();
-	} catch (error) {
-		return new Response(JSON.stringify({ message: error.message }), {status: 403,});
+	const body = typeof req.json === 'function' ? await req.json() : req.body;
+	const userAuth = await authorizeRole(["baseuser"])(req);
+	// console.log(userAuth.authorized)
+	if (!userAuth.authorized) {
+		return userAuth.response; // Return error response if user is not authorized
 	}
-
-	const newReport = {
+	// Check if the required fields are present in the body
+	if (!body.parkingLotId || !body.description || !body.imageUrl) {
+		return new Response(
+		JSON.stringify({ message: 'Missing required fields: parkingLotId, description, and/or imageUrl' }),
+		{ status: 400 }
+		);
+	}
+	
+	try {
+		await connectToDB();
+		const newReport = {
 		username: userAuth.user.username,
 		parkingLotId: body.parkingLotId,
 		description: body.description,
 		status: "In sospeso",
 		imageUrl: body.imageUrl,
-	};
-
-	try {
+		};
+	
+		// Create the report
 		const createdReport = await Report.create(newReport);
 		return new Response(JSON.stringify(createdReport), { status: 201 });
 	} catch (error) {
+		// Handle any errors that occur during report creation
 		return new Response(
-			JSON.stringify({ message: `Report creation failed:${error.message}` }),{ status: 500 });
+		JSON.stringify({ message: `Report creation failed: ${error.message}` }),
+		{ status: 500 }
+		);
 	}
-	
-}
+	}
+	  
 /* elimina una segnalazione dato l'Id messo nel body in questo modo {"id" : <id>} */
 export async function DELETE(req) {
-    const { searchParams } = new URL(req.url);
-  	const id = searchParams.get('id');
-    try {
-        await validateUser(req);
-    } catch (error) {
-        return new Response(JSON.stringify({ message: error.message }), {
-            status: 403,
-        });
-    }
+	const { searchParams } = new URL(req.url);
+	const id = searchParams.get("id");
 
-	const deletionSuccess = await Report.findByIdAndDelete(id);
-	if (deletionSuccess) {
-		return new Response(
-			JSON.stringify({ message: "Report deleted successfully" }),
-			{ status: 200 }
-		);
-	} else {
-		return new Response(JSON.stringify({ message: "Report deletion failed" }), {
-			status: 500,
-		});
+	if (!id) {
+	return new Response(
+		JSON.stringify({ message: "Missing required report ID" }),
+		{ status: 400 }
+	);
 	}
-}
-async function validateUser(req) {
+
 	const userAuth = await authorizeRole(["baseuser"])(req);
+
 	if (!userAuth.authorized) {
-		return Response.json({ message: "User not authorized" }, { status: 403 });
+		return userAuth.response;
 	}
-	return userAuth;
-}
+
+	try {
+	  await connectToDB();
+	  // Ensure a database connection
+	  
+	//   console.log('bene')
+	  const deletionSuccess = await Report.findByIdAndDelete(id);
+	//   console.log('male')
+	  if (deletionSuccess) {
+		return new Response(
+		  JSON.stringify({ message: "Report deleted successfully" }),
+		  { status: 200 }
+		);
+	  } else {
+		return new Response(
+		  JSON.stringify({ message: "Report not found or already deleted" }),
+		  { status: 404 }
+		);
+	  }
+	} catch (error) {
+	//   console.error("Error during report deletion:", error);
+	  return new Response(
+		JSON.stringify({ message: "Internal server error" }),
+		{ status: 500 }
+	  );
+	}
+  }
+  

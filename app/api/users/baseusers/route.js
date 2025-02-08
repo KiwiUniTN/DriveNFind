@@ -2,7 +2,8 @@ import { connectToDB } from '../../../lib/database';
 import User from '../../../models/User';
 import { authorize } from '../../../middleware/auth';
 import bcrypt from 'bcrypt'; 
-import { clerkClient } from "@clerk/nextjs";
+import { auth,clerkClient, clerkMiddleware,verifyToken,currentUser } from "@clerk/nextjs/server";
+
 
 export async function GET(req) {
   const authResult = authorize(req);
@@ -42,51 +43,64 @@ export async function GET(req) {
 
 
 export async function POST(req) {
-  // clerk sync
-   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const token = authHeader.split(" ")[1];
-
-    // Verify Clerk token
-    const session = await clerkClient.sessions.verifyToken(token);
-    if (!session) return Response.json({ error: "Invalid token" }, { status: 401 });
-
-    const userId = session.userId;
-    const clerkUser = await clerkClient.users.getUser(userId);
-
-    const email = clerkUser.emailAddresses[0]?.emailAddress;
-    if (!email) return Response.json({ error: "Email not found" }, { status: 400 });
-
+  
+  try {
+		// Clerk handles authentication automatically
     await connectToDB();
+		const { userId } = await auth();
+    const clerkUser = await currentUser();
+		// console.log(await auth());
+		if (!userId) {
+			return Response.json({ error: "Unauthorized" }, { status: 401 });
+		}
 
-    // Check if user exists in your DB
-    const existingUser = await User.findByUsername(email);
-    if (existingUser) {
-      return Response.json({ message: "User already inserted with Clerk" }, { status: 200 });
-    }
+		// Fetch Clerk user details
+		
+		const email = clerkUser?.emailAddresses[0]?.emailAddress;
 
-    // Generate a random secure password (not used for login)
-    const hashedPassword = await bcrypt.hash(userId, 10);
+		if (!email) {
+			return Response.json({ error: "Email not found" }, { status: 400 });
+		}
 
-    // Create new user
-    const newUser = new User({ username: email, password: hashedPassword, role: "baseuser" });
-    await newUser.save();
+		
 
-    return Response.json({ message: "User created successfully", user: newUser }, { status: 201 });
-  } catch (error) {
-    console.error("Error syncing user:", error);
-    return Response.json({ error: "Internal server error" }, { status: 500 });
-  };
+		// Check if user already exists in DB
+		const existingUser = await User.findOne({ username: email });
+		if (existingUser) {
+			return Response.json(
+				{ message: "User already exists" },
+				{ status: 200 }
+			);
+		}
+
+		// Hash Clerk's user ID (avoid storing plaintext passwords)
+		const hashedPassword = await bcrypt.hash(userId, 10);
+
+		// Save user in DB
+		const newUser = new User({
+			username: email,
+			password: hashedPassword,
+			role: "baseuser",
+		});
+
+		await newUser.save();
+
+		return Response.json(
+			{ message: "User created successfully" },
+			{ status: 201 }
+		);
+	} catch (error) {
+		// console.error("Error syncing user:", error);
+		return Response.json(
+			{ error: "Internal server error" },
+			{ status: 500 }
+		);
+	}
 }
 
 export async function DELETE(req) {
-  try {
-    const { username: targetUsername } = await req.json(); // Get the username to delete from the request body
-    console.log(targetUsername)
+  const { username: targetUsername } = typeof req.json === 'function' ? await req.json() : req.body; // Get the username to delete from the request body
+    // console.log(targetUsername)
     // Authorize the request
     const authResult = await authorize(req); // Assume this returns { authorized, user }
     if (!authResult.authorized) {
@@ -96,9 +110,11 @@ export async function DELETE(req) {
 		const { user } = authResult; // The authenticated user
 		const { username: currentUsername, role: currentUserRole } = user;
 
+  try {
 		await connectToDB();
 
 		// Allow base users to delete their own account
+    // console.log(targetUsername)
 		if (currentUserRole === "baseuser" && targetUsername !== null) {
 			return Response.json(
 				{ message: "You can only delete your own account." },
@@ -145,13 +161,8 @@ export async function DELETE(req) {
 				{ status: 200 }
 			);
 		}
-
-		return Response.json(
-			{ message: "Operation not allowed." },
-			{ status: 403 }
-		);
 	} catch (error) {
-		console.error("Error processing DELETE request:", error);
+		// console.error("Error processing DELETE request:", error);
 		return Response.json(
 			{ message: "Internal server error." },
 			{ status: 500 }

@@ -1,26 +1,27 @@
-// app/lib/database.js
 import mongoose from "mongoose";
 
 let isConnected = false;
 
 export const connectToDB = async () => {
   mongoose.set("strictQuery", true);
-
-  // Check if already connected to avoid reconnecting
-  if (isConnected) {
-    console.log("Already connected to the database");
-    return;
+  if (!process.env.MONGODB_URI) {
+    return { success: false, message: "MONGODB_URI is missing in environment variables" };
   }
-
+  if (isConnected) {
+    return { success: true, message: "Already connected to the database" };
+  }
   try {
     await mongoose.connect(process.env.MONGODB_URI, {
-      dbName: "drivenfind"
+      dbName: "drivenfind",
     });
-
-    // Set isConnected to true after a successful connection
     isConnected = true;
-    console.log("Database connected successfully!");
+    return { success: true, message: "Database connected successfully!" };
   } catch (error) {
     console.error("Database connection failed:", error);
+    return { success: false, message: "Database connection failed" };
   }
+};
+
+export const setIsConnectedForTesting = (value) => {
+  isConnected = value;
 };

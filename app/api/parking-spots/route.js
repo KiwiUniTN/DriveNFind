@@ -1,7 +1,6 @@
 import { connectToDB } from '../../lib/database';
 import ParkingSpot from '../../models/ParkingSpot';
 export async function GET(req) {
-  await connectToDB();
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
   const lat = searchParams.get('lat');
@@ -13,7 +12,9 @@ export async function GET(req) {
   const tipologia = searchParams.get('tipologia');
 
   try {
+    await connectToDB();
     if (id) {
+      console.log('a1')
       const parkingSpot = await ParkingSpot.findOne({ id: parseInt(id) });
       if (!parkingSpot)
         return new Response(JSON.stringify({ message: 'Parking spot not found' }), { status: 404 });
@@ -78,7 +79,6 @@ export async function GET(req) {
 
 
 export async function PATCH(req) {
-  await connectToDB();
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
   const newDisponibilita = searchParams.get('disponibilita');
@@ -88,6 +88,7 @@ export async function PATCH(req) {
   }
 
   try {
+    await connectToDB();
     const updatedParkingSpot = await ParkingSpot.findOneAndUpdate(
       { _id: id },
       { disponibilita: newDisponibilita },
