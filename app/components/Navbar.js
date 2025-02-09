@@ -58,7 +58,7 @@ const Navbar = ({ className }) => {
 	}, [isSignedIn, user]);
 	return (
 		<nav
-			className={`${className} bg-[#ffffe3] flex flex-wrap p-1 justify-between align-middle`}>
+			className={`${className} bg-[#ffffe3] flex  p-1 justify-between align-middle sm:p-2 `}>	
 			<div className='relative w-1/12 h-16'>
 				<Image
 					src='/LogoDriveNFind.png'

@@ -158,7 +158,7 @@ const ReportCard = ({ report, getJWT, isAdmin, onDelete, parkingSpot }) => {
 					{isAdmin ? (
 
 						<select
-							className={`border p-2 rounded text-white raleway-regular ${getBgColor(status)}`}
+							className={`border p-2 rounded text-white w-full raleway-regular ${getBgColor(status)} sm:w-auto`}
 							defaultValue={report.status}
 							onChange={handleChange}>
 							<option className=' raleway-regular bg-[#ae171c]'>In sospeso</option>

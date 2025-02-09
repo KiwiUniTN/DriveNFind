@@ -127,18 +127,18 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 	);
 
 	return (
-		<div className='flex rounded-box items-center gap-2 join'>
+		<div className='flex rounded-box items-center gap-2 join flex-wrap'>
 			<label className='input input-bordered flex items-center gap-2 bg-white'>
 				<input
 					type='text'
-					className='grow text-black raleway-regular'
+					className=' text-black raleway-regular flex-shrink text-xs sm:text-sm '
 					placeholder='Cerca la tua destinazione'
 					onChange={handleInputChange}
 				/>
 				{!isLoading ? (
 					<FontAwesomeIcon
 						icon={faMagnifyingGlass}
-						className='text-beigeChiaro h-5 w-5 hover:text-beigeChiaro'
+						className='text-beigeChiaro h-5 w-5 hover:text-beigeChiaro flex-shrink-0'
 						onClick={handleIconClick}
 					/>
 				) : (
