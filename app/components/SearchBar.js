@@ -128,7 +128,11 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 
 		try {
 			const response = await fetch(
-				'https://nominatim.openstreetmap.org/search?format=json&countrycodes=IT&addressdetails=1&polygon=1&q=' + searchTerm
+				`https://nominatim.openstreetmap.org/search?format=json&countrycodes=IT&addressdetails=1&polygon=1&bounded=1&viewbox=${
+					position[1] - 0.25
+				},${position[0] - 0.25},${position[1] + 0.25},${
+					position[0] + 0.25
+				}&q=${searchTerm}`
 			);
 
 			if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
