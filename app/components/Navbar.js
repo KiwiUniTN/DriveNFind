@@ -58,7 +58,7 @@ const Navbar = ({ className }) => {
 	}, [isSignedIn, user]);
 	return (
 		<nav
-			className={`${className} bg-[#ffffe3] flex flex-wrap p-1 justify-between align-middle`}>
+			className={`${className} bg-[#ffffe3] flex  p-1 justify-between align-middle sm:p-2 `}>	
 			<div className='relative w-1/12 h-16'>
 				<Image
 					src='/LogoDriveNFind.png'
@@ -68,7 +68,7 @@ const Navbar = ({ className }) => {
 					sizes='(max-width: 768px) 10vw, (max-width: 1200px) 5vw, 3vw'
 				/>
 			</div>
-			<div className='flex items-center justify-center w-1/12 h-16 mx-10 gap-2'>
+			<div className='flex items-center justify-center  h-16 mx-10 gap-2'>
 				<SignedOut>
 					<div className='dropdown dropdown-bottom dropdown-left flex items-center'>
 						<button className='poppins-semibold btn btn-xs text-white bg-[#ad181a] border-none sm:btn-sm md:btn-md lg:btn-lg z-10 h-auto flex items-center hover:bg-slate-900'>

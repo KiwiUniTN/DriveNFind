@@ -157,11 +157,11 @@ const ReportCard = ({ report, getJWT, isAdmin ,onDelete }) => {
 				<div className='flex w-full justify-between align-center gap-6 items-center'>
 					{isAdmin ? (
 						<select
-							className={`border p-2 rounded text-white ${getBgColor(status)}`}
+							className={`border w-full p-2 rounded text-white ${getBgColor(status)} sm:w-auto `}
 							defaultValue={report.status}
 							onChange={handleChange}>
 							<option className='bg-red-500'>{report.status}</option>
-							<option className='bg-yellow-500' value='In elaborazione'>
+							<option className='bg-yellow-500 ' value='In elaborazione'>
 								In elaborazione
 							</option>
 							<option value='Evasa' className='bg-green-500'>
