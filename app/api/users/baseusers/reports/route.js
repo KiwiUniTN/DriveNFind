@@ -52,7 +52,7 @@ export async function POST(req, res) {
 	//Upload image to cloudinary
 	let cloudinaryUrl = null;
 	const imageFile = body.get("image"); // Get image from formData
-	console.log("imageFile:", typeof(imageFile));
+	console.log("imageFile:", typeof imageFile);
 	if (imageFile instanceof Blob && imageFile != "null") {
 		console.log("sono dentro");
 		try {
@@ -99,7 +99,6 @@ export async function POST(req, res) {
 		const createdReport = await Report.create(newReport);
 		return new Response(JSON.stringify(createdReport), { status: 201 });
 	} catch (error) {
-		// Handle any errors that occur during report creation
 		return new Response(
 			JSON.stringify({ message: `Report creation failed:${error.message}` }),
 			{ status: 500 }
@@ -121,21 +120,19 @@ export async function DELETE(req) {
 	const deletionSuccess = await Report.findByIdAndDelete(id);
 	if (deletionSuccess) {
 		return new Response(
-		  JSON.stringify({ message: "Report deleted successfully" }),
-		  { status: 200 }
+			JSON.stringify({ message: "Report deleted successfully" }),
+			{ status: 200 }
 		);
-	  } else {
-		return new Response(
-		  JSON.stringify({ message: "Report not found or already deleted" }),
-		  { status: 404 }
-		);
-	  }
-	} catch (error) {
-	//   console.error("Error during report deletion:", error);
-	  return new Response(
-		JSON.stringify({ message: "Internal server error" }),
-		{ status: 500 }
-	  );
+	} else {
+		return new Response(JSON.stringify({ message: "Report deletion failed" }), {
+			status: 500,
+		});
 	}
-  }
-  
+}
+async function validateUser(req) {
+	const userAuth = await authorizeRole(["baseuser"])(req);
+	if (!userAuth.authorized) {
+		return Response.json({ message: "User not authorized" }, { status: 403 });
+	}
+	return userAuth;
+}

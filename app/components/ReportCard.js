@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation"; // Next.js 13+ use next/navigation instead of next/router
 
-const ReportCard = ({ report, getJWT, isAdmin }) => {
+const ReportCard = ({ report, getJWT, isAdmin ,onDelete }) => {
 	const router = useRouter();
 	const [isModifica, setIsModifica] = useState(false);
 	const [description, setDescription] = useState(report.description);
 	const [imageUrl, setImageUrl] = useState(report.imageUrl);
-	const [imageFile, setImageFile] = useState(null); 
+	const [imageFile, setImageFile] = useState(null);
 	const [isDeleting, setIsDeleting] = useState(false);
-		const [status, setStatus] = useState(report.status);
+	const [status, setStatus] = useState(report.status);
 
 	const handleToggleModifica = () => {
 		setIsModifica(!isModifica);
@@ -57,6 +57,7 @@ const ReportCard = ({ report, getJWT, isAdmin }) => {
 
 			// You can also trigger a page refresh or update the UI accordingly
 			router.refresh(); // If needed to reflect changes immediately
+			onDelete(report._id);
 		} catch (error) {
 			console.error("Error during deletion:", error);
 			setIsDeleting(false); // Ensure deletion dialog is closed even in case of an error
@@ -133,12 +134,11 @@ const ReportCard = ({ report, getJWT, isAdmin }) => {
 		}
 	};
 
-
 	return (
 		<div className='card bg-slate-200 w-80 h-96 shadow-xl p-5'>
 			<figure>
 				{isModifica ? (
-					<input type='file' accept='image/*' onChange={handleImageChange} />
+					<input type='file' accept='image/*' className="text-xs" onChange={handleImageChange} />
 				) : imageUrl ? (
 					<img
 						className='rounded-lg w-full h-48 object-cover object-center'
@@ -159,9 +159,7 @@ const ReportCard = ({ report, getJWT, isAdmin }) => {
 						<select
 							className={`border p-2 rounded text-white ${getBgColor(status)}`}
 							defaultValue={report.status}
-							value={status}
-							onChange={handleChange}
-							>
+							onChange={handleChange}>
 							<option className='bg-red-500'>{report.status}</option>
 							<option className='bg-yellow-500' value='In elaborazione'>
 								In elaborazione

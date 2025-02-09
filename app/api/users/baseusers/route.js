@@ -2,7 +2,7 @@ import { connectToDB } from "../../../lib/database";
 import User from "../../../models/User";
 import { authorize } from "../../../middleware/auth";
 import bcrypt from "bcrypt";
-import { auth,currentUser } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 
 export async function GET(req) {
 	const authResult = authorize(req);
@@ -46,10 +46,11 @@ export async function GET(req) {
 }
 
 export async function POST(req) {
-  try {
+	try {
 		// Clerk handles authentication automatically
 		const { userId } = await auth();
-		if (userId === null) { //la sessione deve ancora essere inizializzata, nulla si può dire sull'utente
+		if (userId === null) {
+			//la sessione deve ancora essere inizializzata, nulla si può dire sull'utente
 			return Response.json({ error: "Unauthorized" }, { status: 200 });
 		}
 		if (!userId) {
@@ -69,10 +70,7 @@ export async function POST(req) {
 		// Check if user already exists in DB
 		const existingUser = await User.findOne({ username: email });
 		if (existingUser) {
-			return Response.json(
-				{ message: "User already exists" },
-				{ status: 200 }
-			);
+			return Response.json({ message: "User already exists" }, { status: 200 });
 		}
 
 		// Hash Clerk's user ID (avoid storing plaintext passwords)
@@ -93,31 +91,27 @@ export async function POST(req) {
 		);
 	} catch (error) {
 		console.error("Error syncing user:", error);
-		return Response.json(
-			{ error: "Internal server error" },
-			{ status: 500 }
-		);
+		return Response.json({ error: "Internal server error" }, { status: 500 });
 	}
 }
 
 export async function DELETE(req) {
+	const { username: targetUsername } = await req.json(); // Get the username to delete from the request body
+	console.log(targetUsername);
+	// Authorize the request
+	const authResult = authorize(req); // Assume this returns { authorized, user }
+	if (!authResult.authorized) {
+		return authResult.response; // Return error response if unauthorized
+	}
+
+	const { user } = authResult; // The authenticated user
+	const { username: currentUsername, role: currentUserRole } = user;
+
 	try {
-		const { username: targetUsername } = await req.json(); // Get the username to delete from the request body
-		console.log(targetUsername);
-		// Authorize the request
-		const authResult = await authorize(req); // Assume this returns { authorized, user }
-		if (!authResult.authorized) {
-			return authResult.response; // Return error response if unauthorized
-		}
-
-		const { user } = authResult; // The authenticated user
-		const { username: currentUsername, role: currentUserRole } = user;
-
-  try {
 		await connectToDB();
 
 		// Allow base users to delete their own account
-    // console.log(targetUsername)
+		// console.log(targetUsername)
 		if (currentUserRole === "baseuser" && targetUsername !== null) {
 			return Response.json(
 				{ message: "You can only delete your own account." },

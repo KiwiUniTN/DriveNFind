@@ -2,7 +2,6 @@
 import React, { use, useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import { useUser } from "@clerk/nextjs";
-import { authorizeRole } from "../middleware/auth";
 import ReportCard from "../components/ReportCard";
 
 const page = () => {
@@ -12,6 +11,13 @@ const page = () => {
 	const [user, setUser] = useState(null);
 	const [reports, setReports] = useState(null);
 	const [haveReports, setHaveReports] = useState(false);
+
+	const handleDeleteReport = (deletedReportId) => {
+		setReports((prevReports) =>
+			prevReports.filter((report) => report._id !== deletedReportId)
+		);
+	};
+
 
 	const getJWT = async () => {
 		if (clerkUser) {
@@ -109,6 +115,7 @@ const page = () => {
 									report={report}
 									getJWT={getJWT}
 									isAdmin={isAdmin}
+									onDelete = {handleDeleteReport}
 								/>
 							))
 						) : (
