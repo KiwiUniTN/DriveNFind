@@ -25,13 +25,13 @@ module.exports = {
 			},
 		},
 	},
-	plugins: [require("daisyui")],
+	
 	daisyui: {
 		themes: [
 			{
 				mytheme: {
-					primary: "#5c6c74",
-					secondary: "#6c949c",
+					primary: "#ffffff",
+					secondary: "#000000",
 					accent: "#c1141a",
 					neutral: "#1c2424",
 					"base-100": "#ededed",
@@ -40,5 +40,7 @@ module.exports = {
 			"dark",
 			"cupcake",
 		],
+		
 	},
+	plugins: [require("daisyui")],
 };

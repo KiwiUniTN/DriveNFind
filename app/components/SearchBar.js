@@ -10,18 +10,17 @@ function getAPIStringfromFilters(filters, freeOnly) {
 		elettrico: "alimentazione=elettrico",
 		tipologia: "tipologia=coperto",
 	};
-
+	
 	let query = "";
-	for (const filter in filters) {
-		if (filters[filter]) {
-			query += mapFilters[filter] + "&";
-		}
-	}
-
 	if (freeOnly) {
 		query += "disponibilita=libero&";
 	}
-
+	for (const filter in filters) {
+			if (filters[filter]) {
+				query += mapFilters[filter] + "&";
+			}
+	}
+	console.log("Query:", query);
 	query = query.slice(0, -1); // Remove trailing "&"
 	return query;
 }
@@ -43,7 +42,7 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 
 	// Initialize the parking spots list
 	useEffect(() => {
-		refreshSpots("");
+		refreshSpots("disponibilita=libero");
 	}, []);
 
 	// Handle checkbox changes
@@ -75,10 +74,8 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 		setIsLoading(true);
 		try {
 			const response = await fetch(
-				`https://nominatim.openstreetmap.org/search?format=json&countrycodes=IT&addressdetails=1&polygon=1&bounded=1&viewbox=${
-					position[1] - 0.25
-				},${position[0] - 0.25},${position[1] + 0.25},${
-					position[0] + 0.25
+				`https://nominatim.openstreetmap.org/search?format=json&countrycodes=IT&addressdetails=1&polygon=1&bounded=1&viewbox=${position[1] - 0.25
+				},${position[0] - 0.25},${position[1] + 0.25},${position[0] + 0.25
 				}&q=${searchTerm}`
 			);
 			if (!response.ok)
@@ -249,12 +246,15 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 					</li>
 				</ul>
 			</details>
-			<input
-				type='checkbox'
-				className='toggle checked:bg-[#a0b536] toggle-success'
-				checked={freeOnly}
-				onChange={() => setFreeOnly(!freeOnly)}
-			/>
+			<label className="raleway-semibold flex items-center gap-2 cursor-pointer">
+				<input
+					type="checkbox"
+					className="toggle checked:bg-[#a0b536] toggle-success"
+					checked={freeOnly}
+					onChange={() => setFreeOnly(!freeOnly)}
+				/>
+				{freeOnly ? "Mostrando solo parcheggi gratuiti" : "Mostrando tutti i parcheggi"}
+			</label>
 		</div>
 	);
 };

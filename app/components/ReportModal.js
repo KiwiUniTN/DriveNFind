@@ -4,6 +4,7 @@ const ReportModal = ({ isOpen, onClose, onSubmit, parkId }) => {
 	const [image, setImage] = useState(null);
 	const [description, setDescription] = useState("");
 	const [lotId, setLotId] = useState(parkId);
+	const [errors, setErrors] = useState({});
 
 	const handleImageChange = (event) => {
 		const file = event.target.files[0];
@@ -12,9 +13,21 @@ const ReportModal = ({ isOpen, onClose, onSubmit, parkId }) => {
 		}
 	};
 
-	const handleSubmit = () => {
-		onSubmit({ image, description, lotId });
-		onClose();
+	const validateForm = () => {
+		let newErrors = {};
+		if (!image) newErrors.image = 'L\'immagine è obbligatoria.';
+		if (!description.trim()) newErrors.description = 'La descrizione è obbligatoria.';
+		setErrors(newErrors);
+		return Object.keys(newErrors).length === 0; // Se non ci sono errori, ritorna true
+	};
+
+	const handleSubmit = (e) => {
+		e.preventDefault();
+		if (validateForm()) {
+			console.log('Form inviato con:', { image, description });
+			onSubmit({ image, description, lotId });
+			onClose();
+		}
 	};
 
 	if (!isOpen) return null;
@@ -37,21 +50,17 @@ const ReportModal = ({ isOpen, onClose, onSubmit, parkId }) => {
 						onChange={handleImageChange}
 						className='mt-2 w-full raleway-regular'
 					/>
+					{errors.image && <p className="raleway-semibold text-[#ad181a]">{errors.image}</p>}
 				</label>
-				{image && (
-					<img
-						src={image}
-						alt='Preview'
-						className='w-full h-32 object-cover mb-3 rounded-lg'
-					/>
-				)}
-
 				{/* Text Field */}
 				<textarea
 					className='w-full p-2 border rounded-lg raleway-regular raleway-regular text-white'
 					placeholder='Descrivi il problema...'
 					value={description}
-					onChange={(e) => setDescription(e.target.value)}></textarea>
+					onChange={(e) => setDescription(e.target.value)}>
+				</textarea>
+				{errors.description && <p className="raleway-semibold text-[#ad181a]">{errors.description}</p>}
+
 
 				{/* Buttons */}
 				<div className='flex justify-between mt-4'>

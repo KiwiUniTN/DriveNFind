@@ -110,7 +110,7 @@ const ParkChoice = ({ data, destination }) => {
 													<span className='raleway-semibold'>
 														{park.disabili
 															? "Parcheggio giallo per disabili"
-															: "Parcheggio normale"}
+															: "Parcheggio bianco o blu"}
 													</span>
 												</div>
 											</div>

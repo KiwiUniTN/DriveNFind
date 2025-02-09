@@ -10,21 +10,24 @@ const ParkCard = ({ parkingLot }) => {
 		<div className='p-2'>
 			<div className='poppins-semibold'>{parkingLot.nome.toUpperCase()}</div>
 			<div className='raleway-semibold'>
-				
 				{parkingLot.disponibilita == "navigazione" ? (
-					<div className='flex flex-col justify-center items-center' >
-					<p className='text-xl text-red-600'>
-						Parcheggio Prenotato da un altro utente!
-					</p>
-					<div className="raleway-regualer italic">Non è possibile Navigare</div>
+					<div className='justify-center items-center' >
+						<p className=' text-red-600 poppins-semibold'>
+							Parcheggio a cui sta navigando un altro utente! Non è possibile navigare o segnalare il parcheggio.
+						</p>
+						<p className='text-red-600 poppins-semibold'></p>
 					</div>
-					
+
 				) : (
 					<>
-					Disponiilità : 
-					<span className='raleway-regular'>{parkingLot.disponibilita}</span>
+						Disponibilità :
+						<span className='raleway-regular'>{parkingLot.disponibilita}</span>
 					</>
 				)}
+			</div>
+			<div className='raleway-semibold'>
+				Indirizzo:{" "}
+				<span className='raleway-regular'>{parkingLot.indirizzo.charAt(0).toUpperCase()+parkingLot.indirizzo.slice(1)}</span>
 			</div>
 			<div className='raleway-semibold'>
 				Tipologia:{" "}

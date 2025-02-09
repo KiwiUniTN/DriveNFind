@@ -68,10 +68,10 @@ const Navbar = ({ className }) => {
 					sizes='(max-width: 768px) 10vw, (max-width: 1200px) 5vw, 3vw'
 				/>
 			</div>
-			<div className='flex items-center justify-center w-1/12 h-16 mx-10 gap-2'>
+			<div className='flex items-center justify-center w-auto h-16 mx-10 gap-2'>
 				<SignedOut>
 					<div className='dropdown dropdown-bottom dropdown-left flex items-center'>
-						<button className='poppins-semibold btn btn-xs text-white bg-[#ad181a] border-none sm:btn-sm md:btn-md lg:btn-lg z-10 h-auto flex items-center hover:bg-slate-900'>
+					<button className="poppins-semibold btn btn-xs text-white bg-[#ad181a] border-none sm:btn-sm md:btn-md lg:btn-lg z-10 h-auto flex items-center hover:bg-slate-900 min-w-[100px]">
 							ACCEDI
 						</button>
 						<div className='dropdown-content card card-compact z-[1]'>
@@ -81,11 +81,11 @@ const Navbar = ({ className }) => {
 						</div>
 					</div>
 				</SignedOut>
-				<SignedIn>
+				<SignedIn >
 					<Link
 						href={isOnReportsPage ? "/" : "/reports"}
-						className='raleway-regular btn btn-outline'>
-						{isOnReportsPage ? "Home" : "Segnalazioni"}
+						className='<button className="poppins-semibold btn btn-xs text-white bg-[#ad181a] border-none sm:btn-sm md:btn-md lg:btn-lg z-10 h-auto flex items-center hover:bg-slate-900 min-w-[100px]">'>
+						{isOnReportsPage ? "HOME" : "SEGNALAZIONI"}
 					</Link>
 					<UserButton showName className='raleway-regular' />
 				</SignedIn>

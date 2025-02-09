@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation"; // Next.js 13+ use next/navigation instead of next/router
 
-const ReportCard = ({ report, getJWT, isAdmin ,onDelete }) => {
+const ReportCard = ({ report, getJWT, isAdmin, onDelete, parkingSpot }) => {
 	const router = useRouter();
 	const [isModifica, setIsModifica] = useState(false);
 	const [description, setDescription] = useState(report.description);
@@ -9,7 +9,6 @@ const ReportCard = ({ report, getJWT, isAdmin ,onDelete }) => {
 	const [imageFile, setImageFile] = useState(null);
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [status, setStatus] = useState(report.status);
-
 	const handleToggleModifica = () => {
 		setIsModifica(!isModifica);
 	};
@@ -102,11 +101,11 @@ const ReportCard = ({ report, getJWT, isAdmin ,onDelete }) => {
 	const getBgColor = (status) => {
 		switch (status) {
 			case "Evasa":
-				return "bg-green-500";
+				return "bg-[#a0b536]";
 			case "In elaborazione":
 				return "bg-yellow-500";
 			case "In sospeso":
-				return "bg-gray-500";
+				return "bg-[#ae171c]";
 			default:
 				return "bg-white";
 		}
@@ -135,7 +134,7 @@ const ReportCard = ({ report, getJWT, isAdmin ,onDelete }) => {
 	};
 
 	return (
-		<div className='card bg-slate-200 w-80 h-96 shadow-xl p-5'>
+		<div className='card bg-slate-200 w-90 h-96 shadow-xl p-5'>
 			<figure>
 				{isModifica ? (
 					<input type='file' accept='image/*' className="text-xs" onChange={handleImageChange} />
@@ -155,37 +154,37 @@ const ReportCard = ({ report, getJWT, isAdmin ,onDelete }) => {
 			</figure>
 			<div className='card-body p-3'>
 				<div className='flex w-full justify-between align-center gap-6 items-center'>
+					<h2 className='card-title raleway-semibold'>{parkingSpot?.nome.toUpperCase()}</h2>
 					{isAdmin ? (
+
 						<select
-							className={`border p-2 rounded text-white ${getBgColor(status)}`}
+							className={`border p-2 rounded text-white raleway-regular ${getBgColor(status)}`}
 							defaultValue={report.status}
 							onChange={handleChange}>
-							<option className='bg-red-500'>{report.status}</option>
-							<option className='bg-yellow-500' value='In elaborazione'>
+							<option className=' raleway-regular bg-[#ae171c]'>In sospeso</option>
+							<option className='bg-yellow-500 raleway-regular' value='In elaborazione'>
 								In elaborazione
 							</option>
-							<option value='Evasa' className='bg-green-500'>
+							<option value='Evasa' className='bg-[#a0b536] raleway-regular'>
 								Evasa
 							</option>
 						</select>
 					) : (
 						<>
-							<h2 className='card-title'>Segnalazione</h2>
+
 							<p
-								className={`text-xs badge text-black ${
-									report.status === "Evasa"
-										? "bg-green-500"
-										: report.status === "In elaborazione"
+								className={`text-xs raleway-regular text-white border-none badge  ${report.status === "Evasa"
+									? "bg-[#a0b536]"
+									: report.status === "In elaborazione"
 										? "bg-yellow-500"
-										: "bg-red-500"
-								}`}>
+										: "bg-[#ae171c]"
+									}`}>
 								{report.status}
 							</p>
 						</>
 					)}
 				</div>
-				<textarea
-					className='text-sm bg-transparent w-full h-24'
+				<textarea className="textarea textarea-primary !bg-white !text-black raleway-regular"
 					disabled={!isModifica}
 					value={description}
 					onChange={handleDescriptionChange}
@@ -194,18 +193,17 @@ const ReportCard = ({ report, getJWT, isAdmin ,onDelete }) => {
 					<>
 						<div className='card-actions justify-end'>
 							<button
-								className='badge badge-outline bg-azzurro'
+								className='poppins-semibold btn btn-xs text-white bg-[#2e3b43] border-none sm:btn-sm md:btn-md lg:btn-lg z-10 h-auto flex items-center hover:bg-slate-900'
 								onClick={isModifica ? updateReport : handleToggleModifica}>
-								{isModifica ? "Salva" : "Modifica"}
+								{isModifica ? "SALVA" : "MODIFICA"}
 							</button>
-							<button
-								className='badge badge-outline bg-rosso'
+							<button className='poppins-semibold btn btn-xs text-white bg-[#ad181a] border-none sm:btn-sm md:btn-md lg:btn-lg z-10 h-auto flex items-center hover:bg-slate-900'
 								onClick={() => setIsDeleting(true)}>
-								Elimina
+								ELIMINA
 							</button>
 						</div>
 						{isDeleting && (
-							<div role='alert' className='alert alert-warning'>
+							<div role='alert' className='alert alert-warning p-2 text-sm flex items-center gap-2 mt-2 bg-[#ad181a] text-white' >
 								<svg
 									xmlns='http://www.w3.org/2000/svg'
 									className='h-6 w-6 shrink-0 stroke-current'
@@ -218,17 +216,17 @@ const ReportCard = ({ report, getJWT, isAdmin ,onDelete }) => {
 										d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'
 									/>
 								</svg>
-								<span>Attenzione: Vuoi eliminare la segnalazione</span>
-								<div>
+								<span>Attenzione: Vuoi davvero eliminare la segnalazione?</span>
+								<div className="flex gap-2">
 									<button
-										className='btn btn-sm bg-red-500'
+										className='btn btn-sm bg-white text-slate-900 hover:bg-slate-300'
 										onClick={handleDelete}>
-										Si
+										SI
 									</button>
 									<button
-										className='btn btn-sm bg-transparent'
+										className='btn btn-sm bg-white text-slate-900 hover:bg-slate-300'
 										onClick={() => setIsDeleting(false)}>
-										No
+										NO
 									</button>
 								</div>
 							</div>
