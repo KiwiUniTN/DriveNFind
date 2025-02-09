@@ -96,7 +96,7 @@ const page = () => {
 			<div className='flex flex-col items-center justify-center w-full p-4'>
 				<div className='w-full h-[10%] flex justify-center items-center'>
 					<h1 className='raleway-regular'>
-						{isAdmin ? "Segnalazioni" : "Le Tue Segnalazioni"}
+						{isAdmin ? "Tutte le Segnalazioni" : "Le Tue Segnalazioni"}
 					</h1>
 				</div>
 				{/* Scrollable reports container */}

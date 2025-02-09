@@ -3,6 +3,7 @@ import Report from "@/app/models/Report";
 import mongoose from "mongoose";
 import cloudinary from "@/app/lib/cloudinary";
 import { Readable } from "stream";
+import { blob } from "stream/consumers";
 /* crea un report dato nel body della richiesta 
     "parkingLotId": id del parcheggio,
     "description": "descrizione del problema",
@@ -14,13 +15,14 @@ export async function POST(req, res) {
 	try {
 		userAuth = await validateUser(req);
 		body = await req.formData();
+		console.log("Form data entries:", Array.from(body.entries())); // Log form data entries
 	} catch (error) {
 		return new Response(JSON.stringify({ message: error.message }), {
 			status: 403,
 		});
 	}
 
-	let parkingLotId = body.get("parkingLotId"); 
+	let parkingLotId = body.get("parkingLotId");
 	try {
 		// Check if the ID is valid before trying to convert it
 		if (!mongoose.Types.ObjectId.isValid(parkingLotId)) {
@@ -47,11 +49,12 @@ export async function POST(req, res) {
 		);
 	}
 
-	
 	//Upload image to cloudinary
 	let cloudinaryUrl = null;
 	const imageFile = body.get("image"); // Get image from formData
-	if (imageFile && imageFile instanceof Blob) {
+	console.log("imageFile:", typeof(imageFile));
+	if (imageFile instanceof Blob && imageFile != "null") {
+		console.log("sono dentro");
 		try {
 			const arrayBuffer = await imageFile.arrayBuffer();
 			const buffer = Buffer.from(arrayBuffer);
@@ -82,13 +85,7 @@ export async function POST(req, res) {
 				{ status: 500 }
 			);
 		}
-	} else {
-		console.error("Invalid image file:", imageFile);
-		return new Response(JSON.stringify({ message: "Invalid image format" }), {
-			status: 400,
-		});
 	}
-
 
 	const newReport = {
 		parkingLotId: parkingLotId,
@@ -110,15 +107,15 @@ export async function POST(req, res) {
 }
 /* elimina una segnalazione dato l'Id */
 export async function DELETE(req) {
-    const { searchParams } = new URL(req.url);
-  	const id = searchParams.get('id');
-    try {
-        await validateUser(req);
-    } catch (error) {
-        return new Response(JSON.stringify({ message: error.message }), {
-            status: 403,
-        });
-    }
+	const { searchParams } = new URL(req.url);
+	const id = searchParams.get("id");
+	try {
+		await validateUser(req);
+	} catch (error) {
+		return new Response(JSON.stringify({ message: error.message }), {
+			status: 403,
+		});
+	}
 
 	const deletionSuccess = await Report.findByIdAndDelete(id);
 	if (deletionSuccess) {
