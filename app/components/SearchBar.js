@@ -304,7 +304,10 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 					</li>
 				</ul>
 			</details>
-			<input type="checkbox" className="toggle toggle-success" checked={freeOnly} onChange={() => setFreeOnly(!freeOnly)} />
+			<div className="flex items-center gap-1 flex-col">
+				<span className="text-nowrap text-xs text-gray-600">Parcheggi Liberi</span>
+				<input type="checkbox" className="toggle toggle-success" checked={freeOnly} onChange={() => setFreeOnly(!freeOnly)} />
+			</div>
 		</div>
 	);
 };

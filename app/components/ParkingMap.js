@@ -252,9 +252,9 @@ const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
 			{Array.isArray(parkingOption) &&
 			parkingOption != null &&
 			parkingOption.length > 0 ? (
-				<div className='absolute mb-4'>
-					<ParkChoice data={parkingOption} destination={setDestination} />
-				</div>
+				
+				<ParkChoice data={parkingOption} destination={setDestination} />
+				
 			) : showAlertNoPark ? (
 				<div className='fixed top-[12%] left-1/2 transform -translate-x-1/2 z-50 w-[90%] max-w-md'>
 					<div
