@@ -17,8 +17,6 @@ export default  async function Home() {
 	const spots = await getParkingSpots();
 	
 	return (
-		<div>
-			<Wrapper spots={spots} />
-		</div>
+		<Wrapper spots={spots} />
 	);
 }

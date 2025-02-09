@@ -65,36 +65,47 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
     });
   };
 
-  useEffect(() => {
-    const query = getAPIStringfromFilters(filters, freeOnly);
-    refreshSpots(query);
-  }, [filters, freeOnly]);
+	useEffect(() => {
+		const query = getAPIStringfromFilters(filters, freeOnly);
+		refreshSpots(query);
+	}, [filters, freeOnly]); // React when `freeOnly` state changes and filters changes
+	
+	//Google Places API quando avremo i soldi
+	// Fetch location suggestions from Nominatim
+	const fetchLocations = async (searchTerm) => {
+		setIsLoading(true);
 
-  const fetchLocations = async (searchTerm) => {
-    setIsLoading(true);
-    try {
-      const response = await fetch(
-        'https://nominatim.openstreetmap.org/search?format=json&countrycodes=IT&addressdetails=1&polygon=1&q=' + searchTerm
-      );
-      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-      const data = await response.json();
-      setSuggestions(data);
-    } catch (error) {
-      console.error("Error fetching locations:", error);
-      setSuggestions([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+		try {
+			const response = await fetch(
+				`https://nominatim.openstreetmap.org/search?format=json&countrycodes=IT&addressdetails=1&polygon=1&bounded=1&viewbox=${
+					position[1] - 0.25
+				},${position[0] - 0.25},${position[1] + 0.25},${
+					position[0] + 0.25
+				}&q=${searchTerm}`
+			);
 
-  const handleInputChange = (e) => {
-    const value = e.target.value.trim();
-    setQuery(value);
-    if (!value.trim()) {
-      setShowSuggestions(false);
-      setSuggestions([]);
-    }
-  };
+			if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
+			const data = await response.json();
+			console.log("Suggestions:", data);
+			setSuggestions(data);
+		} catch (error) {
+			console.error("Error fetching locations:", error);
+			setSuggestions([]);
+		} finally {
+			setIsLoading(false);
+		}
+	};
+	// Handle input change
+	const handleInputChange = (e) => {
+		const value = e.target.value.trim();
+		setQuery(value);
+		if (!value.trim()) {
+			setShowSuggestions(false);
+			setSuggestions([]);
+		}
+
+	};
 
   const handleIconClick = async () => {
     if (!query.trim()) return;
@@ -152,89 +163,100 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
         </ul>
       )}
 
-      <details className='dropdown rounded-box'>
-        <summary className='btn bg-white border-none hover:bg-slate-900'>
-          <FontAwesomeIcon
-            icon={faFilter}
-            className='text-gray h-5 w-5 bg-wh'
-          />
-        </summary>
-        <ul className='menu dropdown-content bg-white rounded-box z-[1] w-52'>
-          <li>
-            <div className='form-control'>
-              <label className='label cursor-pointer flex justify-between w-40'>
-                <span className='label-text text-black raleway-regular'>A Pagamento</span>
-                <input
-                  type='checkbox'
-                  className='checkbox'
-                  checked={filters.pagamento}
-                  onChange={() => handleCheckboxChange("pagamento")}
-                />
-              </label>
-            </div>
-          </li>
-          <li>
-            <div className='form-control'>
-              <label className='label cursor-pointer flex justify-between w-40'>
-                <span className='label-text text-black raleway-regular'>Gratuito</span>
-                <input
-                  type='checkbox'
-                  className='checkbox'
-                  checked={filters.gratis}
-                  onChange={() => handleCheckboxChange("gratis")}
-                />
-              </label>
-            </div>
-          </li>
-          <li>
-            <div className='form-control'>
-              <label className='label cursor-pointer flex justify-between w-40'>
-                <span className='label-text text-black raleway-regular'>Per Disabili</span>
-                <input
-                  type='checkbox'
-                  className='checkbox'
-                  checked={filters.disabili}
-                  onChange={() => handleCheckboxChange("disabili")}
-                />
-              </label>
-            </div>
-          </li>
-          <li>
-            <div className='form-control'>
-              <label className='label cursor-pointer flex justify-between w-40'>
-                <span className='label-text text-black raleway-regular'>Elettrico</span>
-                <input
-                  type='checkbox'
-                  className='checkbox'
-                  checked={filters.elettrico}
-                  onChange={() => handleCheckboxChange("elettrico")}
-                />
-              </label>
-            </div>
-          </li>
-          <li>
-            <div className='form-control'>
-              <label className='label cursor-pointer flex justify-between w-40'>
-                <span className='label-text text-black raleway-regular'>Coperto</span>
-                <input
-                  type='checkbox'
-                  className='checkbox'
-                  checked={filters.tipologia}
-                  onChange={() => handleCheckboxChange("tipologia")}
-                />
-              </label>
-            </div>
-          </li>
-        </ul>
-      </details>
-      <input 
-        type="checkbox" 
-        className="toggle checked:bg-[#a0b536] toggle-success" 
-        checked={freeOnly} 
-        onChange={() => setFreeOnly(!freeOnly)} 
-      />
-    </div>
-  );
+			<details className='dropdown rounded-box'>
+				<summary className='btn bg-white border-none hover:bg-slate-900'>
+					<FontAwesomeIcon
+						icon={faFilter}
+						className='text-gray h-5 w-5 bg-wh '
+					/>
+				</summary>
+				<ul className='menu dropdown-content bg-white rounded-box z-[1]  w-52'>
+					<li>
+						<div className='form-control'>
+							<label className='label cursor-pointer justify-between w-40 '>
+								<span className='label-text text-black raleway-regular'>Tutti</span>
+								<input
+									type='checkbox'
+									className='checkbox'
+									checked={filters.tutti}
+									onChange={() => handleCheckboxChange("tutti")}
+								/>
+							</label>
+						</div>
+					</li>
+					<li>
+						<div className='form-control'>
+							<label className='label cursor-pointer flex justify-between w-40'>
+								<span className='label-text text-black raleway-regular'>A Pagamento</span>
+								<input
+									type='checkbox'
+									className='checkbox'
+									checked={filters.pagamento}
+									onChange={() => handleCheckboxChange("pagamento")}
+								/>
+							</label>
+						</div>
+					</li>
+					<li>
+						<div className='form-control'>
+							<label className='label cursor-pointer flex justify-between w-40'>
+								<span className='label-text text-black raleway-regular'>Gratuito</span>
+								<input
+									type='checkbox'
+									className='checkbox'
+									checked={filters.gratis}
+									onChange={() => handleCheckboxChange("gratis")}
+								/>
+							</label>
+						</div>
+					</li>
+					<li>
+						<div className='form-control'>
+							<label className='label cursor-pointer flex justify-between w-40'>
+								<span className='label-text text-black raleway-regular'>Per Disabili</span>
+								<input
+									type='checkbox'
+									className='checkbox'
+									checked={filters.disabili}
+									onChange={() => handleCheckboxChange("disabili")}
+								/>
+							</label>
+						</div>
+					</li>
+					<li>
+						<div className='form-control'>
+							<label className='label cursor-pointer flex justify-between w-40'>
+								<span className='label-text text-black raleway-regular'>Elettrico</span>
+								<input
+									type='checkbox'
+									className='checkbox'
+									checked={filters.elettrico}
+									onChange={() => handleCheckboxChange("elettrico")}
+								/>
+							</label>
+						</div>
+					</li>
+					<li>
+						<div className='form-control'>
+							<label className='label cursor-pointer flex justify-between w-40'>
+								<span className='label-text text-black raleway-regular'>Coperto</span>
+								<input
+									type='checkbox'
+									className='checkbox'
+									checked={filters.tipologia}
+									onChange={() => handleCheckboxChange("tipologia")}
+								/>
+							</label>
+						</div>
+					</li>
+				</ul>
+			</details>
+			<div className="flex items-center gap-1 flex-col">
+				<span className="text-nowrap text-xs text-gray-600">Parcheggi Liberi</span>
+				<input type="checkbox" className="toggle toggle-success" checked={freeOnly} onChange={() => setFreeOnly(!freeOnly)} />
+			</div>
+		</div>
+	);
 };
 
 export default SearchBar;

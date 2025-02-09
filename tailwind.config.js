@@ -21,9 +21,24 @@ module.exports = {
 				beigeChiaro: "var(--beigeChiaro)",
 			},
 			fontFamily: {
-				poppins: ['Poppins', 'sans-serif'],
-			  },
+				poppins: ["Poppins", "sans-serif"],
+			},
 		},
 	},
 	plugins: [require("daisyui")],
+	daisyui: {
+		themes: [
+			{
+				mytheme: {
+					primary: "#5c6c74",
+					secondary: "#6c949c",
+					accent: "#c1141a",
+					neutral: "#1c2424",
+					"base-100": "#ededed",
+				},
+			},
+			"dark",
+			"cupcake",
+		],
+	},
 };

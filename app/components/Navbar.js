@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import Image from "next/image";
-import Reports from "./Reports";
+import Link from "next/link";
 
 import {
 	SignedIn,
@@ -11,7 +11,8 @@ import {
 	useAuth,
 	useUser,
 } from "@clerk/nextjs";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 
 const syncUser = async (token, mail) => {
 	try {
@@ -34,8 +35,17 @@ const syncUser = async (token, mail) => {
 	}
 };
 const Navbar = ({ className }) => {
-	const { isSignedIn } = useAuth();
+	const { isSignedIn, getToken } = useAuth();
 	const { user } = useUser();
+	const [isClient, setIsClient] = useState(false); // State to check if it's client-side
+	const pathname = usePathname();// State to hold the router object
+
+	// Only run useRouter on the client-side
+	useEffect(() => {
+		setIsClient(true);
+	}, []);
+
+	const isOnReportsPage = pathname === "/reports";
 	// Sincronizzo Clerk con il nostro db
 	useEffect(() => {
 		if (isSignedIn && user) {
@@ -48,7 +58,7 @@ const Navbar = ({ className }) => {
 	}, [isSignedIn, user]);
 	return (
 		<nav
-			className={`${className} flex flex-wrap p-1 justify-between align-middle`}>
+			className={`${className} bg-[#ffffe3] flex flex-wrap p-1 justify-between align-middle`}>
 			<div className='relative w-1/12 h-16'>
 				<Image
 					src='/LogoDriveNFind.png'
@@ -72,7 +82,11 @@ const Navbar = ({ className }) => {
 					</div>
 				</SignedOut>
 				<SignedIn>
-					<Reports className='raleway-regular' />
+					<Link
+						href={isOnReportsPage ? "/" : "/reports"}
+						className='raleway-regular btn btn-outline'>
+						{isOnReportsPage ? "Home" : "Segnalazioni"}
+					</Link>
 					<UserButton showName className='raleway-regular' />
 				</SignedIn>
 			</div>
