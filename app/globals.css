@@ -63,7 +63,6 @@ body {
   width: 350px;
   box-shadow: -2px 0 4px rgba(0,0,0,0.1);
 }
-
 .leaflet-routing-alt {
   max-height: calc(100vh - 40px);
   overflow-y: auto;

@@ -58,7 +58,7 @@ const Navbar = ({ className }) => {
 	}, [isSignedIn, user]);
 	return (
 		<nav
-			className={`${className} bg-[#ffffe3] flex  p-1 justify-between align-middle sm:p-2 `}>	
+			className={`${className} bg-[#ffffe3] flex  p-1 justify-between align-middle sm:p-2 `}>
 			<div className='relative w-1/12 h-16'>
 				<Image
 					src='/LogoDriveNFind.png'
@@ -70,17 +70,19 @@ const Navbar = ({ className }) => {
 			</div>
 			<div className='flex items-center justify-center w-auto h-16 mx-10 gap-2'>
 				<SignedOut>
-					<div className='dropdown dropdown-bottom dropdown-left flex items-center'>
-					<button className="poppins-semibold btn btn-xs text-white bg-[#ad181a] border-none sm:btn-sm md:btn-md lg:btn-lg z-10 h-auto flex items-center hover:bg-slate-900 min-w-[100px]">
+					<div className="dropdown dropdown-bottom relative flex items-center">
+						<button className="btn text-white bg-[#ad181a] border-none hover:bg-slate-900 px-4 py-2">
 							ACCEDI
 						</button>
-						<div className='dropdown-content card card-compact z-[1]'>
-							<div className='card-body'>
-								<SignIn routing='hash' />
-							</div>
+						<div className="dropdown-content absolute right-0 w-auto max-w-sm  p-4 
+      sm:absolute sm:right-0 sm:top-full
+      xs:fixed xs:top-1/2 xs:left-1/2 xs:-translate-x-1/2 xs:-translate-y-1/2 xs:z-50 xs:rounded-lg xs:shadow-xl">
+							<SignIn routing="hash" />
 						</div>
 					</div>
 				</SignedOut>
+
+
 				<SignedIn >
 					<Link
 						href={isOnReportsPage ? "/" : "/reports"}
