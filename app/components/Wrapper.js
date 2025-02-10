@@ -5,27 +5,29 @@ import { useEffect, useState } from "react";
 const Navbar = dynamic(() => import("./Navbar"), { ssr: false });
 const ParkingMap = dynamic(() => import("./ParkingMap"), { ssr: false });
 
-const Wrapper = ({ prevSpots }) => {
-	const [spots, setSpots] = useState(prevSpots || []);
+const Wrapper = () => {
+	const [spots, setSpots] = useState([]);
 
 	useEffect(() => {
-		if (prevSpots !== undefined) {
-			setSpots(prevSpots);
-		}
-	}, [prevSpots]);
-
+		const eventSource = new EventSource('/api/parking-spots/stream');
+		eventSource.onmessage = (event) => {
+		  const data = JSON.parse(event.data);
+		  if (data.statusChanged) {
+			fetchNewSpots("");
+		  }
+		};
+	  
+		return () => eventSource.close();
+	  }, []);
 	const fetchNewSpots = async (query) => {
 		try {
-			const response = await fetch(`/api/parking-spots?${query}`);
-			if (!response.ok) {
-				throw new Error(`Failed to fetch data: ${response.statusText}`);
-			}
+			const response = await fetch(`/api/parking-spots${query ? `?${query}` : ""}`);
+			if (!response.ok) throw new Error(`Failed to fetch: ${response.statusText}`);
 			const data = await response.json();
-			// console.log("Fetched parking spots:", data);
-			setSpots(data); // Update spots based on search results
+			setSpots(data);
 			return data;
 		} catch (error) {
-			console.error("Error fetching parking spots:", error);
+			console.error("Error fetching spots:", error);
 		}
 	};
 	return (
