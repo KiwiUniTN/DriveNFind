@@ -56,18 +56,20 @@ const Navbar = ({ className }) => {
 			getUserTokenandSync();
 		}
 	}, [isSignedIn, user]);
-	
+
 	return (
 		<nav
 			className={`${className} bg-[#ffffe3] flex  p-1 justify-between align-middle sm:p-2 `}>
 			<div className='relative w-1/12 h-16'>
-				<Image
-					src='/LogoDriveNFind.png'
-					alt='Logo'
-					fill
-					className='object-contain'
-					sizes='(max-width: 768px) 10vw, (max-width: 1200px) 5vw, 3vw'
-				/>
+				<Link href='/'>
+					<Image
+						src='/LogoDriveNFind.png'
+						alt='Logo'
+						fill
+						className='object-contain'
+						sizes='(max-width: 768px) 10vw, (max-width: 1200px) 5vw, 3vw'
+					/>
+				</Link>
 			</div>
 			<div className='flex items-center justify-center w-auto h-16 mx-10 gap-2'>
 				<SignedOut>
