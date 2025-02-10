@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass, faFilter } from "@fortawesome/free-solid-svg-icons";
 
-function getAPIStringfromFilters(filters, freeOnly,isNavigating) {
+function getAPIStringfromFilters(filters, freeOnly, isNavigating) {
 	const mapFilters = {
 		pagamento: "regolamento=pagamento,pagamento-disco orario",
 		gratis: "regolamento=disco orario,gratuito senza limitazione d'orario",
@@ -10,15 +10,15 @@ function getAPIStringfromFilters(filters, freeOnly,isNavigating) {
 		elettrico: "alimentazione=elettrico",
 		tipologia: "tipologia=coperto",
 	};
-	
+
 	let query = "";
 	if (freeOnly) {
 		query += "disponibilita=libero&";
 	}
 	for (const filter in filters) {
-			if (filters[filter]) {
-				query += mapFilters[filter] + "&";
-			}
+		if (filters[filter]) {
+			query += mapFilters[filter] + "&";
+		}
 	}
 	console.log("Query:", query);
 	query = query.slice(0, -1); // Remove trailing "&"
@@ -31,7 +31,7 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 	const [suggestions, setSuggestions] = useState([]);
 	const [showSuggestions, setShowSuggestions] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
-
+	const [inputValue, setInputValue] = useState("");
 	const [filters, setFilters] = useState({
 		pagamento: false,
 		gratis: false,
@@ -91,17 +91,19 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 	};
 
 	const handleInputChange = (e) => {
-		const value = e.target.value.trim();
+		const value = e.target.value;
+		setInputValue(value);
 		setQuery(value);
 		if (!value.trim()) {
 			setShowSuggestions(false);
 			setSuggestions([]);
 		}
 	};
-
+	
 	const handleIconClick = async () => {
 		if (!query.trim()) return;
 		setIsLoading(true);
+		setInputValue("");
 		try {
 			await fetchLocations(query);
 		} finally {
@@ -133,7 +135,15 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 					type='text'
 					className=' text-black raleway-regular flex-shrink text-xs sm:text-sm '
 					placeholder='Cerca la tua destinazione'
+					value={inputValue}
 					onChange={handleInputChange}
+					onKeyDown={(e) => {
+						if (e.key === "Enter") {
+							e.preventDefault();
+							handleIconClick();
+						}
+					}}
+
 				/>
 				{!isLoading ? (
 					<FontAwesomeIcon

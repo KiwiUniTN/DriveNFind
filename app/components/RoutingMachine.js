@@ -85,15 +85,15 @@ const RoutingMachine = ({ userLocation, destination, parkingId, refreshSpots }) 
 			`}
 			</style>
 			{routeActive && (
-				<div className='fixed bottom-8 left-8 z-[1000] gap-2'>
+				<div className='fixed bottom-8 flex gap-2 left-8 z-[1000]'>
 					<button
-						className='btn btn-error text-white px-4 py-2 rounded-lg shadow-lg bg-[#ad181a] hover:bg-slate-900 transition-colors border-none poppins-semibold'
+						className='poppins-semibold btn btn-xs text-white bg-[#ad181a] border-none sm:btn-sm md:btn-md lg:btn-lg z-10 h-auto flex items-center hover:bg-slate-900 min-w-[100px]'
 						onClick={handleRemoveRoute}>
 						ESCI DALLA NAVIGAZIONE
 					</button>
 					<button
 						onClick={() => setShowDirections(!showDirections)}
-						className='btn btn-error text-white px-4 py-2 rounded-lg shadow-lg bg-[#ad181a] hover:bg-slate-900 transition-colors border-none poppins-semibold'>
+						className='poppins-semibold btn btn-xs text-white bg-[#ad181a] border-none sm:btn-sm md:btn-md lg:btn-lg z-10 h-auto flex items-center hover:bg-slate-900 min-w-[100px]'>
 						{showDirections ? "RIMUOVI " : "MOSTRA"} INDICAZIONI
 					</button>
 				</div>

@@ -52,6 +52,7 @@ const ParkCard = ({ parkingLot }) => {
 					Dettagli
 				</a>
 			</div>
+			
 		</div>
 	);
 }

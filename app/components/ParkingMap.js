@@ -56,7 +56,6 @@ const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
 	const [destination, setDestination] = useState(null);
 	const [parkingOption, setParkingOption] = useState(null);
 	const { user } = useUser();
-
 	const handleReportSubmit = async (parkData) => {
 		console.log("Report Data:", parkData);
 
@@ -210,7 +209,6 @@ const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
 											if (!response.ok) {
 												throw new Error("Failed to update parking spot");
 											}
-
 											// If the PATCH was successful, then update the destination
 											setDestination({
 												lat: spot.location.coordinates[1],
