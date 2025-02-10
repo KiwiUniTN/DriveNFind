@@ -3,7 +3,6 @@ import Report from "@/app/models/Report";
 import mongoose from "mongoose";
 import cloudinary from "@/app/lib/cloudinary";
 import { Readable } from "stream";
-import { blob } from "stream/consumers";
 /* crea un report dato nel body della richiesta 
     "parkingLotId": id del parcheggio,
     "description": "descrizione del problema",

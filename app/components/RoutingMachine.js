@@ -4,7 +4,7 @@ import "leaflet-routing-machine";
 import { useMap } from "react-leaflet";
 import { set } from "mongoose";
 
-const RoutingMachine = ({ userLocation, destination, parkingId, refreshSpots }) => {
+const RoutingMachine = ({ userLocation, destination, parkingId, refreshSpots, setFreeOnly }) => {
 	const map = useMap();
 	const routingControlRef = useRef(null);
 	const [routeActive, setRouteActive] = useState(false);
@@ -64,7 +64,7 @@ const RoutingMachine = ({ userLocation, destination, parkingId, refreshSpots }) 
 						'Content-Type': 'application/json'
 					}
 				});
-				
+
 				if (!response.ok) {
 					throw new Error('Failed to update parking spot status');
 				}
@@ -87,16 +87,21 @@ const RoutingMachine = ({ userLocation, destination, parkingId, refreshSpots }) 
 			{routeActive && (
 				<div className='fixed bottom-8 flex gap-2 left-8 z-[1000]'>
 					<button
-						className='poppins-semibold btn btn-xs text-white bg-[#ad181a] border-none sm:btn-sm md:btn-md lg:btn-lg z-10 h-auto flex items-center hover:bg-slate-900 min-w-[100px]'
-						onClick={handleRemoveRoute}>
+						className="poppins-semibold btn btn-xs text-white bg-[#ad181a] border-none sm:btn-sm md:btn-md lg:btn-lg z-10 h-auto flex items-center hover:bg-slate-900 min-w-[100px]"
+						onClick={() => {
+							handleRemoveRoute();
+							setFreeOnly(false);
+						}}
+					>
 						ESCI DALLA NAVIGAZIONE
 					</button>
+
 					<button
 						onClick={() => setShowDirections(!showDirections)}
 						className='poppins-semibold btn btn-xs text-white bg-[#ad181a] border-none sm:btn-sm md:btn-md lg:btn-lg z-10 h-auto flex items-center hover:bg-slate-900 min-w-[100px]'>
 						{showDirections ? "RIMUOVI " : "MOSTRA"} INDICAZIONI
 					</button>
-				</div>
+				</div >
 			)}
 		</>
 	);

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass, faFilter } from "@fortawesome/free-solid-svg-icons";
 
-function getAPIStringfromFilters(filters, freeOnly, isNavigating) {
+function getAPIStringfromFilters(filters, freeOnly) {
 	const mapFilters = {
 		pagamento: "regolamento=pagamento,pagamento-disco orario",
 		gratis: "regolamento=disco orario,gratuito senza limitazione d'orario",
@@ -25,9 +25,9 @@ function getAPIStringfromFilters(filters, freeOnly, isNavigating) {
 	return query;
 }
 
-const SearchBar = ({ refreshSpots, position, cardSpots }) => {
+const SearchBar = ({ refreshSpots, position, cardSpots, freeOnly, setFreeOnly }) => {
 	const [query, setQuery] = useState("");
-	const [freeOnly, setFreeOnly] = useState(true);
+	
 	const [suggestions, setSuggestions] = useState([]);
 	const [showSuggestions, setShowSuggestions] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);

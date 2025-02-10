@@ -8,6 +8,7 @@ import SearchBar from "./SearchBar";
 import ParkCard from "./ParkCard";
 import RoutingMachine from "./RoutingMachine";
 import ParkChoice from "./ParkChoice";
+import { set } from "mongoose";
 
 const DEFAULT_POSITION = [46.067508, 11.121539]; // Trento
 
@@ -45,17 +46,18 @@ var greenIcon = new LeafIcon({ iconUrl: "GreenMarker.png" }),
 	redIcon = new LeafIcon({ iconUrl: "RedMarker.png" }),
 	orangeIcon = new LeafIcon({ iconUrl: "OrangeMarker.png" });
 
-const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
+const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 	const [errorLogin, setErrorLogin] = useState(null);
 	const { isSignedIn } = useAuth();
 	const [showAlertNoPark, setShowAlertNoPark] = useState(false);
+	const [isParkCardOpen, setIsParkCardOpen] = useState(true);
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [error, setError] = useState(null);
-	const [spots, setSpots] = useState(parkingSpots);
 	const [userLocation, setUserLocation] = useState(null);
 	const [destination, setDestination] = useState(null);
 	const [parkingOption, setParkingOption] = useState(null);
 	const { user } = useUser();
+	const [freeOnly, setFreeOnly] = useState(true);
 	const handleReportSubmit = async (parkData) => {
 		console.log("Report Data:", parkData);
 
@@ -123,32 +125,26 @@ const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
 		return R * c; // Distanza in km
 	};
 	useEffect(() => {
-		setSpots(parkingSpots); // Sincronizza lo stato con le nuove props
-	}, [parkingSpots]);
-	// useEffect(() => {
-	// 	setSpots((prevSpots) => prevSpots.map((spot) => spot.disponibilita === updatedSpot.disponibilita ? ({ ...spot, ...updatedSpot }) : spot));
-	// }, [updatedSpot]);
-	useEffect(() => {
 		if (Array.isArray(parkingOption) && parkingOption.length === 0) {
 			setShowAlertNoPark(true);
 		} else {
 			setShowAlertNoPark(false);
 		}
-	}, [parkingOption]); // Runs when parkingOption changes
+	}, [parkingOption]);
 	useEffect(() => {
 		if (!destination) {
 			console.log("useEffect attivato! Nessuna destinazione impostata");
 			return;
 		}
-		console.log("useEffect attivato! Stato attuale di spots:", spots);
+		console.log("useEffect attivato! Stato attuale di spots:", parkingSpots);
 
 		// Controlla se il parcheggio attuale è occupato
-		const isOccupied = spots.find(spot => spot.id === destination.id)?.disponibilita === 'occupato';
+		const isOccupied = parkingSpots.find(parkingSpot => parkingSpot.id === destination.id)?.disponibilita === 'occupato';
 
 
 		if (isOccupied) {
 			// Trova il parcheggio libero più vicino
-			const nearestFreeParking = spots
+			const nearestFreeParking = parkingSpots
 				.filter(spot => !spot.occupied)
 				.sort((a, b) => {
 					const distA = getDistance(userLocation, a.coordinates);
@@ -160,7 +156,7 @@ const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
 				setDestination(nearestFreeParking); // Aggiorna la destinazione
 			}
 		}
-	}, [spots, destination, userLocation]);
+	}, [parkingSpots, destination, userLocation]);
 	return (
 		<div className='relative w-screen h-screen flex flex-col justify-end'>
 			<MapContainer
@@ -189,85 +185,89 @@ const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
 									? greenIcon
 									: redIcon
 						}>
-						<Popup>
-							<ParkCard parkingLot={spot} />
-							{spot.disponibilita === "libero" ? (
-								<button
-									onClick={async () => {
-										console.log("Naviga to:", spot._id);
-										try {
-											const response = await fetch(
-												`/api/parking-spots?id=${spot._id}&disponibilita=navigazione`,
-												{
-													method: "PATCH",
-													headers: {
-														"Content-Type": "application/json",
-													},
-												}
-											);
-
-											if (!response.ok) {
-												throw new Error("Failed to update parking spot");
-											}
-											// If the PATCH was successful, then update the destination
-											setDestination({
-												lat: spot.location.coordinates[1],
-												lng: spot.location.coordinates[0],
-												id: spot._id,
-											});
-										} catch (error) {
-											console.error("Error updating parking spot:", error);
-											// You might want to show an error message to the user here
-										}
-									}}
-									className='text-blue-600 underline raleway-semibold'>
-									NAVIGA
-								</button>
-							) : spot.disponibilita === "occupato" ? (
-								<>
+						{isParkCardOpen ?
+							<Popup>
+								<ParkCard parkingLot={spot} isOpen={isParkCardOpen} />
+								{spot.disponibilita === "libero" ? (
 									<button
-										onClick={() => {
-											if (!isSignedIn) {
-												setErrorLogin(
-													"Devi aver fatto l'accesso per segnalare un parcheggio."
+										onClick={async () => {
+											console.log("Naviga to:", spot._id);
+											try {
+												const response = await fetch(
+													`/api/parking-spots?id=${spot._id}&disponibilita=navigazione`,
+													{
+														method: "PATCH",
+														headers: {
+															"Content-Type": "application/json",
+														},
+													}
 												);
-											} else {
-												setIsModalOpen(true);
+
+												if (!response.ok) {
+													throw new Error("Failed to update parking spot");
+												}
+												// If the PATCH was successful, then update the destination
+												setIsParkCardOpen(false);
+												setDestination({
+													lat: spot.location.coordinates[1],
+													lng: spot.location.coordinates[0],
+													id: spot._id,
+												});
+											} catch (error) {
+												console.error("Error updating parking spot:", error);
+												// You might want to show an error message to the user here
 											}
 										}}
-										className='text-red-600 underline raleway-semibold'>
-										SEGNALA
+										className='text-blue-600 underline raleway-semibold'>
+										NAVIGA
 									</button>
-									<ReportModal
-										isOpen={isModalOpen}
-										onClose={() => setIsModalOpen(false)}
-										onSubmit={handleReportSubmit}
-										parkId={spot._id}
-									/>
+								) : spot.disponibilita === "occupato" ? (
+									<>
+										<button
+											onClick={() => {
+												if (!isSignedIn) {
+													setErrorLogin(
+														"Devi aver fatto l'accesso per segnalare un parcheggio."
+													);
+												} else {
+													setIsModalOpen(true);
+												}
+											}}
+											className='text-red-600 underline raleway-semibold'>
+											SEGNALA
+										</button>
+										<ReportModal
+											isOpen={isModalOpen}
+											onClose={() => setIsModalOpen(false)}
+											onSubmit={handleReportSubmit}
+											parkId={spot._id}
+										/>
 
-									{/* Messaggio di errore visibile solo se c'è un errore */}
-									{errorLogin && (
-										<div
-											role='alert'
-											className='alert alert-error p-2 text-sm flex items-center gap-2 mt-2 bg-[#ad181a] text-white' >
-											<svg
-												xmlns='http://www.w3.org/2000/svg'
-												className='h-4 w-4 shrink-0 stroke-current'
-												fill='none'
-												viewBox='0 0 24 24'>
-												<path
-													strokeLinecap='round'
-													strokeLinejoin='round'
-													strokeWidth='2'
-													d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'
-												/>
-											</svg>
-											<span className='raleway-regular'>{errorLogin}</span>
-										</div>
-									)}
-								</>
-							) : null}
-						</Popup>
+										{/* Messaggio di errore visibile solo se c'è un errore */}
+										{errorLogin && (
+											<div
+												role='alert'
+												className='alert alert-error p-2 text-sm flex items-center gap-2 mt-2 bg-[#ad181a] text-white' >
+												<svg
+													xmlns='http://www.w3.org/2000/svg'
+													className='h-4 w-4 shrink-0 stroke-current'
+													fill='none'
+													viewBox='0 0 24 24'>
+													<path
+														strokeLinecap='round'
+														strokeLinejoin='round'
+														strokeWidth='2'
+														d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'
+													/>
+												</svg>
+												<span className='raleway-regular'>{errorLogin}</span>
+											</div>
+										)}
+									</>
+								) : null}
+							</Popup> : null
+						}
+
 					</Marker>
 				))}
 				{/* Routing Machine */}
@@ -278,17 +278,21 @@ const ParkingMap = ({ parkingSpots = [], refreshSpots }) => {
 							destination={destination}
 							parkingId={destination.id}
 							refreshSpots={refreshSpots}
-							parkingSpots={spots}
+							parkingSpots={parkingSpots}
+							setFreeOnly={setFreeOnly}
 						/>
 					</div>
 				)}
 			</MapContainer>
 			<div className='absolute top-2 left-16 z-[1]'>
-				{!error && userLocation ? <SearchBar
-					refreshSpots={refreshSpots}
-					position={DEFAULT_POSITION}
-					cardSpots={setParkingOption}
-				/> : null
+				{!error && userLocation ?
+					<SearchBar
+						refreshSpots={refreshSpots}
+						position={DEFAULT_POSITION}
+						cardSpots={setParkingOption}
+						freeOnly={freeOnly}
+						setFreeOnly={setFreeOnly}
+					/> : null
 				}
 			</div>
 			{Array.isArray(parkingOption) &&
