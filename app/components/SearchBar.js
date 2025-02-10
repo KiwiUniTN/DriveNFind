@@ -264,7 +264,7 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 					onChange={() => setFreeOnly(!freeOnly)}
 				/>
 				{freeOnly
-					? "Mostrando solo parcheggi gratuiti"
+					? "Mostrando solo parcheggi liberi"
 					: "Mostrando tutti i parcheggi"}
 			</label>
 		</div>

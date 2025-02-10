@@ -56,6 +56,7 @@ const Navbar = ({ className }) => {
 			getUserTokenandSync();
 		}
 	}, [isSignedIn, user]);
+	
 	return (
 		<nav
 			className={`${className} bg-[#ffffe3] flex  p-1 justify-between align-middle sm:p-2 `}>
