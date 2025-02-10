@@ -193,11 +193,11 @@ const ReportCard = ({ report, getJWT, isAdmin, onDelete, parkingSpot }) => {
 					<>
 						<div className='card-actions justify-end'>
 							<button
-								className='poppins-semibold btn btn-xs text-white bg-[#2e3b43] border-none sm:btn-sm md:btn-md lg:btn-lg z-10 h-auto flex items-center hover:bg-slate-900'
+								className='poppins-semibold btn btn-xs text-white bg-[#2e3b43] border-none sm:btn-sm z-10 h-auto flex items-center hover:bg-slate-900'
 								onClick={isModifica ? updateReport : handleToggleModifica}>
 								{isModifica ? "SALVA" : "MODIFICA"}
 							</button>
-							<button className='poppins-semibold btn btn-xs text-white bg-[#ad181a] border-none sm:btn-sm md:btn-md lg:btn-lg z-10 h-auto flex items-center hover:bg-slate-900'
+							<button className='poppins-semibold btn btn-xs text-white bg-[#ad181a] border-none sm:btn-sm  z-10 h-auto flex items-center hover:bg-slate-900'
 								onClick={() => setIsDeleting(true)}>
 								ELIMINA
 							</button>
