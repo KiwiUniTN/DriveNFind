@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass, faFilter } from "@fortawesome/free-solid-svg-icons";
 
-function getAPIStringfromFilters(filters, freeOnly) {
+function getAPIStringfromFilters(filters, freeOnly,isNavigating) {
 	const mapFilters = {
 		pagamento: "regolamento=pagamento,pagamento-disco orario",
 		gratis: "regolamento=disco orario,gratuito senza limitazione d'orario",
@@ -161,8 +161,8 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 				</ul>
 			)}
 
-			<details className='dropdown rounded-box'>
-				<summary className='btn bg-white border-none hover:bg-slate-900'>
+			<details className='dropdown-end rounded-box sm:dropdown'>
+				<summary className='btn bg-white border-none hover:bg-slate-900 '>
 					<FontAwesomeIcon
 						icon={faFilter}
 						className='text-gray h-5 w-5 bg-wh'
@@ -246,14 +246,16 @@ const SearchBar = ({ refreshSpots, position, cardSpots }) => {
 					</li>
 				</ul>
 			</details>
-			<label className="raleway-semibold flex items-center gap-2 cursor-pointer">
+			<label className='raleway-semibold flex items-center gap-2 cursor-pointer'>
 				<input
-					type="checkbox"
-					className="toggle checked:bg-[#a0b536] toggle-success"
+					type='checkbox'
+					className='toggle checked:bg-[#a0b536] toggle-success'
 					checked={freeOnly}
 					onChange={() => setFreeOnly(!freeOnly)}
 				/>
-				{freeOnly ? "Mostrando solo parcheggi gratuiti" : "Mostrando tutti i parcheggi"}
+				{freeOnly
+					? "Mostrando solo parcheggi gratuiti"
+					: "Mostrando tutti i parcheggi"}
 			</label>
 		</div>
 	);

@@ -2,11 +2,13 @@
 import { useEffect, useRef, useState } from "react";
 import "leaflet-routing-machine";
 import { useMap } from "react-leaflet";
+import { set } from "mongoose";
 
 const RoutingMachine = ({ userLocation, destination, parkingId, refreshSpots }) => {
 	const map = useMap();
 	const routingControlRef = useRef(null);
 	const [routeActive, setRouteActive] = useState(false);
+	const [showDirections, setShowDirections] = useState(false);
 
 	useEffect(() => {
 		if (!map || !userLocation || !destination) return;
@@ -75,13 +77,24 @@ const RoutingMachine = ({ userLocation, destination, parkingId, refreshSpots }) 
 
 	return (
 		<>
+			<style>
+				{`
+				.leaflet-routing-container {
+					display: ${showDirections ? "block" : "none"};
+				}
+			`}
+			</style>
 			{routeActive && (
-				<div className="fixed bottom-8 left-8 z-[1000]">
+				<div className='fixed bottom-8 left-8 z-[1000] gap-2'>
 					<button
-						className="btn btn-error text-white px-4 py-2 rounded-lg shadow-lg bg-[#ad181a] hover:bg-slate-900 transition-colors border-none poppins-semibold"
-						onClick={handleRemoveRoute}
-					>
+						className='btn btn-error text-white px-4 py-2 rounded-lg shadow-lg bg-[#ad181a] hover:bg-slate-900 transition-colors border-none poppins-semibold'
+						onClick={handleRemoveRoute}>
 						ESCI DALLA NAVIGAZIONE
+					</button>
+					<button
+						onClick={() => setShowDirections(!showDirections)}
+						className='btn btn-error text-white px-4 py-2 rounded-lg shadow-lg bg-[#ad181a] hover:bg-slate-900 transition-colors border-none poppins-semibold'>
+						{showDirections ? "RIMUOVI " : "MOSTRA"} INDICAZIONI
 					</button>
 				</div>
 			)}
