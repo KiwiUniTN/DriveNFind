@@ -5,7 +5,8 @@ import React from 'react'
  */
 
 
-const ParkCard = ({ parkingLot }) => {
+const ParkCard = ({ parkingLot, isOpen }) => {
+	if (!isOpen) return null;
 	return (
 		<div className='p-2'>
 			<div className='poppins-semibold'>{parkingLot.nome.toUpperCase()}</div>
@@ -40,7 +41,7 @@ const ParkCard = ({ parkingLot }) => {
 			<div className='raleway-semibold'>
 				Parcheggio giallo per disabili:{" "}
 				<span className='raleway-regular'>
-					{parkingLot.disabile ? "Sì" : "No"}
+					{parkingLot.disabile ? "sì" : "no"}
 				</span>
 			</div>
 			<div className='raleway-semibold'>
