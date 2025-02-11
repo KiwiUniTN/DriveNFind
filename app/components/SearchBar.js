@@ -20,7 +20,6 @@ function getAPIStringfromFilters(filters, freeOnly) {
 			query += mapFilters[filter] + "&";
 		}
 	}
-	console.log("Query:", query);
 	query = query.slice(0, -1); // Remove trailing "&"
 	return query;
 }
@@ -39,12 +38,6 @@ const SearchBar = ({ refreshSpots, position, cardSpots, freeOnly, setFreeOnly, s
 		elettrico: false,
 		tipologia: false,
 	});
-
-	// Initialize the parking spots list
-	useEffect(() => {
-		refreshSpots("disponibilita=libero");
-	}, []);
-
 	// Handle checkbox changes
 	const handleCheckboxChange = (filterName) => {
 		setFilters((prevFilters) => {
@@ -67,6 +60,7 @@ const SearchBar = ({ refreshSpots, position, cardSpots, freeOnly, setFreeOnly, s
 
 	useEffect(() => {
 		const query = getAPIStringfromFilters(filters, freeOnly);
+		console.log("Query:", query);
 		refreshSpots(query);
 	}, [filters, freeOnly]);
 
@@ -82,7 +76,6 @@ const SearchBar = ({ refreshSpots, position, cardSpots, freeOnly, setFreeOnly, s
 				throw new Error(`HTTP error! Status: ${response.status}`);
 			const data = await response.json();
 			setSuggestions(data);
-			console.log("Suggestions:", data);
 			setSuggestionsPerAlert(data);
 		} catch (error) {
 			console.error("Error fetching locations:", error);

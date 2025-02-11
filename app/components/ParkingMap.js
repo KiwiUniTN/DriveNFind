@@ -114,12 +114,16 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 
 	useEffect(() => {
 		if (Array.isArray(parkingOption) && parkingOption.length === 0) {
+			
 			setShowAlertNoPark(true);
 		} else {
+			
 			setShowAlertNoPark(false);
 		}
 	}, [parkingOption]);
-
+	// useEffect(() => {
+	// 	console.log("ParkingMap ha ricevuto nuovi parkingSpots:", parkingSpots);
+	// }, [parkingSpots]);
 	return (
 		<div className='relative w-screen h-screen flex flex-col justify-end'>
 			<MapContainer
@@ -249,7 +253,6 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 							setFreeOnly={setFreeOnly}
 							setIsParkCardOpen={setIsParkCardOpen}
 							setRouteActiveParkingMap={setRouteActiveParkingMap}
-							
 						/>
 					</div>
 				)}
