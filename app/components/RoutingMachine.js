@@ -4,7 +4,7 @@ import "leaflet-routing-machine";
 import { useMap } from "react-leaflet";
 import { set } from "mongoose";
 
-const RoutingMachine = ({ userLocation, destination, parkingId, refreshSpots, setFreeOnly }) => {
+const RoutingMachine = ({ userLocation, destination, parkingId, refreshSpots, setFreeOnly, setIsParkCardOpen, setRouteActiveParkingMap}) => {
 	const map = useMap();
 	const routingControlRef = useRef(null);
 	const [routeActive, setRouteActive] = useState(false);
@@ -14,6 +14,7 @@ const RoutingMachine = ({ userLocation, destination, parkingId, refreshSpots, se
 		if (!map || !userLocation || !destination) return;
 		const L = require("leaflet");
 		setRouteActive(true);
+		setRouteActiveParkingMap(true);
 
 		const routingControl = L.Routing.control({
 			waypoints: [
@@ -40,9 +41,10 @@ const RoutingMachine = ({ userLocation, destination, parkingId, refreshSpots, se
 					})
 				});
 				return marker;
-			}
+			},
+			
 		}).addTo(map);
-
+		setIsParkCardOpen(true);
 		routingControlRef.current = routingControl;
 
 		return () => {
@@ -58,6 +60,7 @@ const RoutingMachine = ({ userLocation, destination, parkingId, refreshSpots, se
 				map.removeControl(routingControlRef.current);
 				routingControlRef.current = null;
 				setRouteActive(false);
+				setRouteActiveParkingMap(false);
 				const response = await fetch(`/api/parking-spots?id=${parkingId}&disponibilita=libero`, {
 					method: 'PATCH',
 					headers: {

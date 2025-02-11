@@ -59,6 +59,7 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 	const [parkingOption, setParkingOption] = useState(null);
 	const { user } = useUser();
 	const [freeOnly, setFreeOnly] = useState(true);
+	const [routeActiveParkingMap, setRouteActiveParkingMap] = useState(false);
 	const handleReportSubmit = async (parkData) => {
 		console.log("Report Data:", parkData);
 
@@ -110,21 +111,7 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 				// You might want to show an error message to the user here
 			});
 	};
-	const getDistance = (coord1, coord2) => {
-		const [lat1, lon1] = coord1;
-		const [lat2, lon2] = coord2;
-		const R = 6371; // Raggio della Terra in km
-		const dLat = (lat2 - lat1) * (Math.PI / 180);
-		const dLon = (lon2 - lon1) * (Math.PI / 180);
-		const a =
-			Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-			Math.cos(lat1 * (Math.PI / 180)) *
-			Math.cos(lat2 * (Math.PI / 180)) *
-			Math.sin(dLon / 2) *
-			Math.sin(dLon / 2);
-		const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-		return R * c; // Distanza in km
-	};
+
 	useEffect(() => {
 		if (Array.isArray(parkingOption) && parkingOption.length === 0) {
 			setShowAlertNoPark(true);
@@ -132,32 +119,7 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 			setShowAlertNoPark(false);
 		}
 	}, [parkingOption]);
-	useEffect(() => {
-		if (!destination) {
-			console.log("useEffect attivato! Nessuna destinazione impostata");
-			return;
-		}
-		console.log("useEffect attivato! Stato attuale di spots:", parkingSpots);
 
-		// Controlla se il parcheggio attuale è occupato
-		const isOccupied = parkingSpots.find(parkingSpot => parkingSpot.id === destination.id)?.disponibilita === 'occupato';
-
-
-		if (isOccupied) {
-			// Trova il parcheggio libero più vicino
-			const nearestFreeParking = parkingSpots
-				.filter(spot => !spot.occupied)
-				.sort((a, b) => {
-					const distA = getDistance(userLocation, a.coordinates);
-					const distB = getDistance(userLocation, b.coordinates);
-					return distA - distB;
-				})[0];
-
-			if (nearestFreeParking) {
-				setDestination(nearestFreeParking); // Aggiorna la destinazione
-			}
-		}
-	}, [parkingSpots, destination, userLocation]);
 	return (
 		<div className='relative w-screen h-screen flex flex-col justify-end'>
 			<MapContainer
@@ -190,46 +152,49 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 							<Popup>
 								<ParkCard parkingLot={spot} isOpen={isParkCardOpen} />
 								{spot.disponibilita === "libero" ? (
-									<button
-										onClick={async () => {
-											console.log("Naviga to:", spot._id);
-											try {
-												const response = await fetch(
-													`/api/parking-spots?id=${spot._id}&disponibilita=navigazione`,
-													{
-														method: "PATCH",
-														headers: {
-															"Content-Type": "application/json",
-														},
-													}
-												);
+									routeActiveParkingMap ? (
+										<p className='text-red-600 poppins-semibold'>
+											Per favore, esci dalla navigazione attualmente attiva per poter navigare verso un altro parcheggio.
+										</p>
+									) : (
+										<button
+											onClick={async () => {
+												console.log("Naviga to:", spot._id);
+												try {
+													const response = await fetch(
+														`/api/parking-spots?id=${spot._id}&disponibilita=navigazione`,
+														{
+															method: "PATCH",
+															headers: {
+																"Content-Type": "application/json",
+															},
+														}
+													);
 
-												if (!response.ok) {
-													throw new Error("Failed to update parking spot");
+													if (!response.ok) {
+														throw new Error("Failed to update parking spot");
+													}
+													// Se il PATCH ha successo, aggiorna la destinazione
+													setIsParkCardOpen(false);
+													setDestination({
+														lat: spot.location.coordinates[1],
+														lng: spot.location.coordinates[0],
+														id: spot._id,
+													});
+												} catch (error) {
+													console.error("Error updating parking spot:", error);
 												}
-												// If the PATCH was successful, then update the destination
-												setIsParkCardOpen(false);
-												setDestination({
-													lat: spot.location.coordinates[1],
-													lng: spot.location.coordinates[0],
-													id: spot._id,
-												});
-											} catch (error) {
-												console.error("Error updating parking spot:", error);
-												// You might want to show an error message to the user here
-											}
-										}}
-										className='text-blue-600 underline raleway-semibold'>
-										NAVIGA
-									</button>
+											}}
+											className='text-blue-600 underline raleway-semibold'>
+											NAVIGA
+										</button>
+									)
 								) : spot.disponibilita === "occupato" ? (
 									<>
 										<button
 											onClick={() => {
 												if (!isSignedIn) {
-													setErrorLogin(
-														"Devi aver fatto l'accesso per segnalare un parcheggio."
-													);
+													setErrorLogin("Devi aver fatto l'accesso per segnalare un parcheggio.");
 												} else {
 													setIsModalOpen(true);
 												}
@@ -243,29 +208,30 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 											onSubmit={handleReportSubmit}
 											parkId={spot._id}
 										/>
-
-										{/* Messaggio di errore visibile solo se c'è un errore */}
-										{errorLogin && (
-											<div
-												role='alert'
-												className='alert alert-error p-2 text-sm flex items-center gap-2 mt-2 bg-[#ad181a] text-white' >
-												<svg
-													xmlns='http://www.w3.org/2000/svg'
-													className='h-4 w-4 shrink-0 stroke-current'
-													fill='none'
-													viewBox='0 0 24 24'>
-													<path
-														strokeLinecap='round'
-														strokeLinejoin='round'
-														strokeWidth='2'
-														d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'
-													/>
-												</svg>
-												<span className='raleway-regular'>{errorLogin}</span>
-											</div>
-										)}
 									</>
 								) : null}
+
+								{/* Messaggio di errore per il login durante la navigazione */}
+								{spot.disponibilita === "navigazione" && errorLogin && (
+									<div
+										role='alert'
+										className='alert alert-error p-2 text-sm flex items-center gap-2 mt-2 bg-[#ad181a] text-white'>
+										<svg
+											xmlns='http://www.w3.org/2000/svg'
+											className='h-4 w-4 shrink-0 stroke-current'
+											fill='none'
+											viewBox='0 0 24 24'>
+											<path
+												strokeLinecap='round'
+												strokeLinejoin='round'
+												strokeWidth='2'
+												d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'
+											/>
+										</svg>
+										<span className='raleway-regular'>{errorLogin}</span>
+									</div>
+								)}
+
 							</Popup> : null
 						}
 
@@ -281,6 +247,9 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 							refreshSpots={refreshSpots}
 							parkingSpots={parkingSpots}
 							setFreeOnly={setFreeOnly}
+							setIsParkCardOpen={setIsParkCardOpen}
+							setRouteActiveParkingMap={setRouteActiveParkingMap}
+							
 						/>
 					</div>
 				)}
@@ -365,6 +334,27 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 							/>
 						</svg>
 						<span className='raleway-regular'>La destinazione inserita è invalida!</span>
+					</div>
+				</div>
+			)}
+			{parkingSpots.length == 0 && (
+				<div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50">
+					<div
+						role='alert'
+						className='alert alert-error p-2 text-sm flex justify-center  gap-2 bg-[#ad181a] text-white'>
+						<svg
+							xmlns='http://www.w3.org/2000/svg'
+							className='h-4 w-4 shrink-0 stroke-current'
+							fill='none'
+							viewBox='0 0 24 24'>
+							<path
+								strokeLinecap='round'
+								strokeLinejoin='round'
+								strokeWidth='2'
+								d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'
+							/>
+						</svg>
+						<span className='raleway-regular'>Nessun parcheggio trovato che rispetta i criteri di ricerca!</span>
 					</div>
 				</div>
 			)}
