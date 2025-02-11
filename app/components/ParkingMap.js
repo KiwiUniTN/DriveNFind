@@ -114,10 +114,10 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 
 	useEffect(() => {
 		if (Array.isArray(parkingOption) && parkingOption.length === 0) {
-			
+
 			setShowAlertNoPark(true);
 		} else {
-			
+
 			setShowAlertNoPark(false);
 		}
 	}, [parkingOption]);
@@ -155,7 +155,7 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 						{isParkCardOpen ?
 							<Popup>
 								<ParkCard parkingLot={spot} isOpen={isParkCardOpen} />
-								{spot.disponibilita === "libero" && !error? (
+								{spot.disponibilita === "libero" && !error ? (
 									routeActiveParkingMap ? (
 										<p className='text-red-600 poppins-semibold'>
 											Per favore, esci dalla navigazione attualmente attiva per poter navigare verso un altro parcheggio.
@@ -193,8 +193,9 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 											NAVIGA
 										</button>
 									)
-								) : spot.disponibilita === "occupato" && !error ? (
+								) : spot.disponibilita === "occupato" ? (
 									<>
+										
 										<button
 											onClick={() => {
 												if (!isSignedIn) {
@@ -206,36 +207,38 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 											className='text-red-600 underline raleway-semibold'>
 											SEGNALA
 										</button>
-										<ReportModal
-											isOpen={isModalOpen}
-											onClose={() => setIsModalOpen(false)}
-											onSubmit={handleReportSubmit}
-											parkId={spot._id}
-										/>
+
+										{isSignedIn && (
+											<ReportModal
+												isOpen={isModalOpen}
+												onClose={() => setIsModalOpen(false)}
+												onSubmit={handleReportSubmit}
+												parkId={spot._id}
+											/>
+										)}
+
+										{/* Messaggio di errore solo per parcheggi occupati */}
+										{errorLogin && (
+											<div
+												role='alert'
+												className='alert alert-error p-2 text-sm flex items-center gap-2 mt-2 bg-[#ad181a] text-white'>
+												<svg
+													xmlns='http://www.w3.org/2000/svg'
+													className='h-4 w-4 shrink-0 stroke-current'
+													fill='none'
+													viewBox='0 0 24 24'>
+													<path
+														strokeLinecap='round'
+														strokeLinejoin='round'
+														strokeWidth='2'
+														d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'
+													/>
+												</svg>
+												<span className='raleway-regular'>{errorLogin}</span>
+											</div>
+										)}
 									</>
 								) : null}
-
-								{/* Messaggio di errore per il login durante la navigazione */}
-								{spot.disponibilita === "navigazione" && errorLogin && (
-									<div
-										role='alert'
-										className='alert alert-error p-2 text-sm flex items-center gap-2 mt-2 bg-[#ad181a] text-white'>
-										<svg
-											xmlns='http://www.w3.org/2000/svg'
-											className='h-4 w-4 shrink-0 stroke-current'
-											fill='none'
-											viewBox='0 0 24 24'>
-											<path
-												strokeLinecap='round'
-												strokeLinejoin='round'
-												strokeWidth='2'
-												d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'
-											/>
-										</svg>
-										<span className='raleway-regular'>{errorLogin}</span>
-									</div>
-								)}
-
 							</Popup> : null
 						}
 
@@ -360,7 +363,7 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 						<span className='raleway-regular'>Nessun parcheggio trovato che rispetta i criteri di ricerca!</span>
 					</div>
 				</div>
-			):null}
+			) : null}
 		</div>
 	);
 };
