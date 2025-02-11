@@ -25,9 +25,9 @@ function getAPIStringfromFilters(filters, freeOnly) {
 	return query;
 }
 
-const SearchBar = ({ refreshSpots, position, cardSpots, freeOnly, setFreeOnly }) => {
+const SearchBar = ({ refreshSpots, position, cardSpots, freeOnly, setFreeOnly, setSuggestionsPerAlert }) => {
 	const [query, setQuery] = useState("");
-	
+
 	const [suggestions, setSuggestions] = useState([]);
 	const [showSuggestions, setShowSuggestions] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
@@ -82,6 +82,8 @@ const SearchBar = ({ refreshSpots, position, cardSpots, freeOnly, setFreeOnly })
 				throw new Error(`HTTP error! Status: ${response.status}`);
 			const data = await response.json();
 			setSuggestions(data);
+			console.log("Suggestions:", data);
+			setSuggestionsPerAlert(data);
 		} catch (error) {
 			console.error("Error fetching locations:", error);
 			setSuggestions([]);
@@ -99,7 +101,7 @@ const SearchBar = ({ refreshSpots, position, cardSpots, freeOnly, setFreeOnly })
 			setSuggestions([]);
 		}
 	};
-	
+
 	const handleIconClick = async () => {
 		if (!query.trim()) return;
 		setIsLoading(true);
@@ -152,7 +154,7 @@ const SearchBar = ({ refreshSpots, position, cardSpots, freeOnly, setFreeOnly })
 						onClick={handleIconClick}
 					/>
 				) : (
-					<span className='loading loading-spinner loading-xs'></span>
+					<span className='loading loading-spinner loading-xs'></span>					
 				)}
 			</label>
 
