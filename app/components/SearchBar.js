@@ -114,6 +114,7 @@ const SearchBar = ({ refreshSpots, position, cardSpots, freeOnly, setFreeOnly, s
 		let queryAPI = getAPIStringfromFilters(filters, freeOnly);
 		queryAPI += lat ? `&lat=${lat}` : "";
 		queryAPI += lon ? `&long=${lon}` : "";
+		console.log("Query:", queryAPI);
 		refreshSpots(queryAPI).then((res) => {
 			cardSpots(res);
 		});

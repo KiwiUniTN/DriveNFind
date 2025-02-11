@@ -20,7 +20,7 @@ const Wrapper = () => {
     }, [currentQuery]); // Add currentQuery as dependency
 	const handleFilterChange = (newQuery) => {
         setCurrentQuery(newQuery);
-        fetchNewSpots(newQuery);
+        return fetchNewSpots(newQuery);
     };
     const fetchNewSpots = async (query) => {
         try {
