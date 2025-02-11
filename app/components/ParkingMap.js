@@ -258,7 +258,7 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 				)}
 			</MapContainer>
 			<div className='absolute top-2 left-16 z-[1]'>
-				{!error && userLocation ?
+				{!error && userLocation && !routeActiveParkingMap ?
 					<SearchBar
 						refreshSpots={refreshSpots}
 						position={DEFAULT_POSITION}
