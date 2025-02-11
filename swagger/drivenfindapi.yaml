@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: DriveNFind API Documentation
-  description: "API Documentation for managing parking lots,users accounts and reports\
+  description: "API Documentation for managing parking spots,users accounts and reports\
     \ for the DriveNFind software developed by Arcari Filippo, Conforti Leonardo and\
     \ Gelmini Kevin."
   version: 1.1.0
@@ -531,6 +531,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/inline_response_400'
+  /verify-role:
+    post:
+      tags:
+      - Verify Role
+      summary: Verify role
+      description: Verify if role is a subset of roles array given input
+      operationId: verifyRole
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/verifyrole_body'
+        required: true
+      responses:
+        "200":
+          description: User authorized. Codecoded User.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_3'
+        "401":
+          description: Token invalido or undefined.
+        "403":
+          description: Role not a subset of the array given in input.
+      security:
+      - bearerAuth: []
 components:
   schemas:
     ParkingSpot:
@@ -834,6 +860,19 @@ components:
           type: string
           description: Error message indicating missing credentials.
           example: Username and password are required.
+    verifyrole_body:
+      type: object
+      properties:
+        roles:
+          type: array
+          description: The roles allowed to access the resource.
+          items:
+            type: string
+    inline_response_200_3:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/UserNoPassword'
     ParkingSpot_location:
       required:
       - coordinates
