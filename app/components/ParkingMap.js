@@ -155,7 +155,7 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 						{isParkCardOpen ?
 							<Popup>
 								<ParkCard parkingLot={spot} isOpen={isParkCardOpen} />
-								{spot.disponibilita === "libero" ? (
+								{spot.disponibilita === "libero" && !error? (
 									routeActiveParkingMap ? (
 										<p className='text-red-600 poppins-semibold'>
 											Per favore, esci dalla navigazione attualmente attiva per poter navigare verso un altro parcheggio.
@@ -193,7 +193,7 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 											NAVIGA
 										</button>
 									)
-								) : spot.disponibilita === "occupato" ? (
+								) : spot.disponibilita === "occupato" && !error ? (
 									<>
 										<button
 											onClick={() => {
@@ -340,7 +340,7 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 					</div>
 				</div>
 			)}
-			{parkingSpots.length == 0 && (
+			{parkingSpots.length == 0 && !error ? (
 				<div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50">
 					<div
 						role='alert'
@@ -360,7 +360,7 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 						<span className='raleway-regular'>Nessun parcheggio trovato che rispetta i criteri di ricerca!</span>
 					</div>
 				</div>
-			)}
+			):null}
 		</div>
 	);
 };
