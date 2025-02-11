@@ -4,6 +4,7 @@ import { connectToDB } from '../../../../app/lib/database';
 import User from '../../../../app/models/User';
 import { Response } from 'node-fetch';
 import { authorize } from '../../../../app/middleware/auth';
+import { describe } from 'node:test';
 
 jest.mock('../../../../app/lib/database'); // Mock the database connection
 jest.mock('../../../../app/models/User'); // Mock the User model

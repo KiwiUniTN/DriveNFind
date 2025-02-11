@@ -1,7 +1,7 @@
-import { authorizeRole } from "@/app/middleware/auth";
-import Report from "@/app/models/Report";
+import { authorizeRole } from "../../../../../app/middleware/auth";
+import Report from "../../../../../app/models/Report";
 import mongoose from "mongoose";
-import cloudinary from "@/app/lib/cloudinary";
+import cloudinary from "../../../../../app/lib/cloudinary";
 import { Readable } from "stream";
 import { blob } from "stream/consumers";
 /* crea un report dato nel body della richiesta 
@@ -10,10 +10,17 @@ import { blob } from "stream/consumers";
     "imageUrl": "path/to/image" */
 
 export async function POST(req, res) {
-	let userAuth;
+	let userAuthsec;
 	let body;
 	try {
-		userAuth = await validateUser(req);
+		const userAuth = await authorizeRole(["baseuser"])(req);
+		
+		
+	if (!userAuth.authorized) {
+		return Response.json({ message: "User not authorized" }, { status: 403 });
+	}
+	userAuthsec = userAuth;
+	console.log(userAuthsec.user.username)
 		body = await req.formData();
 		console.log("Form data entries:", Array.from(body.entries())); // Log form data entries
 	} catch (error) {
@@ -42,13 +49,13 @@ export async function POST(req, res) {
 		return new Response(
 			JSON.stringify({
 				message: "Invalid parkingLotId format",
-				error: error.message,
+				error: error instanceof Error ? error.message : "Unknown error",  // Assicurati che venga gestito correttamente
 				receivedId: parkingLotId,
 			}),
 			{ status: 400 }
 		);
 	}
-
+	console.log(userAuthsec.user.username)
 	//Upload image to cloudinary
 	let cloudinaryUrl = null;
 	const imageFile = body.get("image"); // Get image from formData
@@ -86,10 +93,10 @@ export async function POST(req, res) {
 			);
 		}
 	}
-
+	console.log(userAuthsec.user.username)
 	const newReport = {
 		parkingLotId: parkingLotId,
-		username: userAuth.user.username,
+		username: userAuthsec.user.username,
 		description: body.get("description"),
 		status: "In sospeso",
 		imageUrl: cloudinaryUrl,
@@ -106,33 +113,42 @@ export async function POST(req, res) {
 	}
 }
 /* elimina una segnalazione dato l'Id */
+/* elimina una segnalazione dato l'Id */
 export async function DELETE(req) {
 	const { searchParams } = new URL(req.url);
 	const id = searchParams.get("id");
-	try {
-		await validateUser(req);
-	} catch (error) {
-		return new Response(JSON.stringify({ message: error.message }), {
-			status: 403,
-		});
+  
+	if (!id) {
+	  return new Response(
+		JSON.stringify({ message: "Missing required report ID" }),
+		{ status: 400 }
+	  );
 	}
-
-	const deletionSuccess = await Report.findByIdAndDelete(id);
-	if (deletionSuccess) {
-		return new Response(
-			JSON.stringify({ message: "Report deleted successfully" }),
-			{ status: 200 }
-		);
-	} else {
-		return new Response(JSON.stringify({ message: "Report deletion failed" }), {
-			status: 500,
-		});
-	}
-}
-async function validateUser(req) {
+  
 	const userAuth = await authorizeRole(["baseuser"])(req);
 	if (!userAuth.authorized) {
-		return Response.json({ message: "User not authorized" }, { status: 403 });
+	  return new Response(
+		JSON.stringify({ message: "User not authorized" }),
+		{ status: 403 }
+	  );
 	}
-	return userAuth;
-}
+  
+	try {
+	  const deletionSuccess = await Report.findByIdAndDelete(id);
+	  if (deletionSuccess) {
+		return new Response(
+		  JSON.stringify({ message: "Report deleted successfully" }),
+		  { status: 200 }
+		);
+	  }
+	  return new Response(
+		JSON.stringify({ message: "Report not found or already deleted" }),
+		{ status: 404 }
+	  );
+	} catch (error) {
+	  return new Response(
+		JSON.stringify({ message: "Internal server error" }),
+		{ status: 500 }
+	  );
+	}
+  }

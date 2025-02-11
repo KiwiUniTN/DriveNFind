@@ -1,76 +1,76 @@
-import { connectToDB } from "../../../lib/database";
-import User from "../../../models/User";
-import { authorize } from "../../../middleware/auth";
-import bcrypt from "bcrypt";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { connectToDB } from '../../../lib/database';
+import User from '../../../models/User';
+import { authorize } from '../../../middleware/auth';
+import bcrypt from 'bcrypt'; 
+import { auth,clerkClient, clerkMiddleware,verifyToken,currentUser } from "@clerk/nextjs/server";
+
 
 export async function GET(req) {
-	const authResult = authorize(req);
+  const authResult = authorize(req);
 
-	if (!authResult.authorized) {
-		return authResult.response; // Return the error response from the middleware
-	}
-	//Destrutturare l'oggetto user per ottenere username e ruolo
-	const { user } = authResult;
-	const { username, role } = user;
-	try {
-		await connectToDB();
-		const { searchParams } = new URL(req.url);
-		const username_to_search = searchParams.get("username");
+  if (!authResult.authorized) {
+    return authResult.response; // Return the error response from the middleware
+  }
+  //Destrutturare l'oggetto user per ottenere username e ruolo
+  const { user } = authResult;
+  const { username, role } = user;
+  try {
+    await connectToDB();
+    const { searchParams } = new URL(req.url);
+    const username_to_search = searchParams.get('username');
+    
+    let baseUsers;
 
-		let baseUsers;
+    if (username_to_search && role == 'admin') {
+      baseUsers = await User.findByUsername(username_to_search,{password:0});
+    } else if (!username_to_search && role == 'admin') {
+      baseUsers = await User.findByRole('baseuser',{password:0});
+    } else if (!username_to_search && role == 'baseuser') {
+      baseUsers = await User.findByUsername(username,{password:0});
+    }else if (username_to_search && role == 'baseuser') {
+      return Response.json({ message: 'Forbidden - insufficient permissions' }, { status: 403 })
+    }
 
-		if (username_to_search && role == "admin") {
-			baseUsers = await User.findByUsername(username_to_search, {
-				password: 0,
-			});
-		} else if (!username_to_search && role == "admin") {
-			baseUsers = await User.findByRole("baseuser", { password: 0 });
-		} else if (!username_to_search && role == "baseuser") {
-			baseUsers = await User.findByUsername(username, { password: 0 });
-		} else if (username_to_search && role == "baseuser") {
-			return Response.json(
-				{ message: "Forbidden - insufficient permissions" },
-				{ status: 403 }
-			);
-		}
+    if (!baseUsers) {
+      return Response.json({ error: 'User not found' }, { status: 404 });
+    }
 
-		if (!baseUsers) {
-			return Response.json({ error: "User not found" }, { status: 404 });
-		}
-
-		return Response.json(baseUsers, { status: 200 });
-	} catch (error) {
-		return Response.json({ error: "Internal server error" }, { status: 500 });
-	}
+    return Response.json(baseUsers, { status: 200 });
+  } catch (error) {
+    return Response.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }
 
+
 export async function POST(req) {
-	try {
+  
+  try {
 		// Clerk handles authentication automatically
+    await connectToDB();
 		const { userId } = await auth();
-		if (userId === null) {
-			//la sessione deve ancora essere inizializzata, nulla si può dire sull'utente
-			return Response.json({ error: "Unauthorized" }, { status: 200 });
-		}
+    const clerkUser = await currentUser();
+		// console.log(await auth());
 		if (!userId) {
 			return Response.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
 		// Fetch Clerk user details
-		const clerkUser = await currentUser();
+		
 		const email = clerkUser?.emailAddresses[0]?.emailAddress;
 
 		if (!email) {
 			return Response.json({ error: "Email not found" }, { status: 400 });
 		}
 
-		await connectToDB();
+		
 
 		// Check if user already exists in DB
 		const existingUser = await User.findOne({ username: email });
 		if (existingUser) {
-			return Response.json({ message: "User already exists" }, { status: 200 });
+			return Response.json(
+				{ message: "User already exists" },
+				{ status: 200 }
+			);
 		}
 
 		// Hash Clerk's user ID (avoid storing plaintext passwords)
@@ -90,28 +90,31 @@ export async function POST(req) {
 			{ status: 201 }
 		);
 	} catch (error) {
-		console.error("Error syncing user:", error);
-		return Response.json({ error: "Internal server error" }, { status: 500 });
+		// console.error("Error syncing user:", error);
+		return Response.json(
+			{ error: "Internal server error" },
+			{ status: 500 }
+		);
 	}
 }
 
 export async function DELETE(req) {
-	const { username: targetUsername } = await req.json(); // Get the username to delete from the request body
-	console.log(targetUsername);
-	// Authorize the request
-	const authResult = authorize(req); // Assume this returns { authorized, user }
-	if (!authResult.authorized) {
-		return authResult.response; // Return error response if unauthorized
-	}
+  const { username: targetUsername } = typeof req.json === 'function' ? await req.json() : req.body; // Get the username to delete from the request body
+    // console.log(targetUsername)
+    // Authorize the request
+    const authResult = await authorize(req); // Assume this returns { authorized, user }
+    if (!authResult.authorized) {
+      return authResult.response; // Return error response if unauthorized
+    }
 
-	const { user } = authResult; // The authenticated user
-	const { username: currentUsername, role: currentUserRole } = user;
+		const { user } = authResult; // The authenticated user
+		const { username: currentUsername, role: currentUserRole } = user;
 
-	try {
+  try {
 		await connectToDB();
 
 		// Allow base users to delete their own account
-		// console.log(targetUsername)
+    // console.log(targetUsername)
 		if (currentUserRole === "baseuser" && targetUsername !== null) {
 			return Response.json(
 				{ message: "You can only delete your own account." },

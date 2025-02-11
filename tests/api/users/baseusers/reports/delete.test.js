@@ -15,9 +15,10 @@ describe("DELETE /api/users/baseusers/reports", () => {
   it("should return 400 if report ID is missing", async () => {
     const req = { url: "http://localhost/api/users/baseusers/reports" };
 
+    // Mocking Response to include json() method
     const response = await DELETE(req);
-
     const data = await response.json();
+
     expect(response.status).toBe(400);
     expect(data.message).toBe("Missing required report ID");
   });
@@ -34,7 +35,7 @@ describe("DELETE /api/users/baseusers/reports", () => {
     const data = await response.json();
 
     expect(response.status).toBe(403);
-    expect(data.message).toBe("Unauthorized");
+    expect(data.message).toBe("User not authorized");
   });
 
   it("should return 200 and delete report successfully", async () => {

@@ -4,7 +4,7 @@ import { connectToDB } from '../../lib/database'
 import User from '../../models/User';
 export async function POST(req) {
     //Prendo le credenziali dall'oggetto req
-    const { username, password } = await req.json();
+    const { username, password } =  typeof req.json === 'function' ? await req.json() : req.body;
     // console.log("Received request body:", { username, password });
     //Se manca l'username o la password, rispondo con un errore 400
     if (!username || !password) {
