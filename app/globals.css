@@ -132,6 +132,9 @@ body {
 @media screen and (max-width: 768px) {
   .leaflet-routing-container {
     width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
 }

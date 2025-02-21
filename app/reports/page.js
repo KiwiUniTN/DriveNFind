@@ -127,7 +127,7 @@ const page = () => {
 	return (
 		<div className='flex flex-col min-h-screen bg-white'>
 			<Navbar className='w-full h-[10%] z-50' />
-			<div className='flex flex-col items-center justify-center w-full p-4'>
+			<div className='flex flex-col items-center justify-center w-full flex-1  p-4'>
 				<div className='w-full h-[10%] justify-center items-center flex gap-2'>
 					<h1 className='poppins-semibold text-3xl '>
 						{isAdmin ? "TUTTE LE SEGNALAZIONI SUL TERRITORIO" : "LE TUE SEGNALAZIONI"}
@@ -135,7 +135,6 @@ const page = () => {
 					{!isAdmin ? <FontAwesomeIcon icon={faFileContract} /> : <FontAwesomeIcon icon={faEarthAmericas} />}
 				</div>
 				{/* Scrollable reports container */}
-
 				<div className='flex gap-5 flex-wrap justify-center items-center w-full max-h-[70vh] overflow-y-auto p-2'>
 					{reports ? (
 						haveReports ? (

@@ -9,6 +9,8 @@ import ParkCard from "./ParkCard";
 import RoutingMachine from "./RoutingMachine";
 import ParkChoice from "./ParkChoice";
 import { set } from "mongoose";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
 
 const DEFAULT_POSITION = [46.067508, 11.121539]; // Trento
 
@@ -49,6 +51,7 @@ var greenIcon = new LeafIcon({ iconUrl: "GreenMarker.png" }),
 const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 	const [suggestions, setSuggestions] = useState([""]);
 	const [errorLogin, setErrorLogin] = useState(null);
+	  const [showAlert, setShowAlert] = useState(false); 
 	const { isSignedIn } = useAuth();
 	const [showAlertNoPark, setShowAlertNoPark] = useState(false);
 	const [isParkCardOpen, setIsParkCardOpen] = useState(true);
@@ -149,16 +152,17 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 							spot.disponibilita === "navigazione"
 								? orangeIcon
 								: spot.disponibilita === "libero"
-									? greenIcon
-									: redIcon
+								? greenIcon
+								: redIcon
 						}>
-						{isParkCardOpen ?
+						{isParkCardOpen ? (
 							<Popup>
 								<ParkCard parkingLot={spot} isOpen={isParkCardOpen} />
 								{spot.disponibilita === "libero" && !error ? (
 									routeActiveParkingMap ? (
 										<p className='text-red-600 poppins-semibold'>
-											Per favore, esci dalla navigazione attualmente attiva per poter navigare verso un altro parcheggio.
+											Per favore, esci dalla navigazione attualmente attiva per
+											poter navigare verso un altro parcheggio.
 										</p>
 									) : (
 										<button
@@ -195,11 +199,12 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 									)
 								) : spot.disponibilita === "occupato" ? (
 									<>
-										
 										<button
 											onClick={() => {
 												if (!isSignedIn) {
-													setErrorLogin("Devi aver fatto l'accesso per segnalare un parcheggio.");
+													setErrorLogin(
+														"Devi aver fatto l'accesso per segnalare un parcheggio."
+													);
 												} else {
 													setIsModalOpen(true);
 												}
@@ -239,9 +244,8 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 										)}
 									</>
 								) : null}
-							</Popup> : null
-						}
-
+							</Popup>
+						) : null}
 					</Marker>
 				))}
 				{/* Routing Machine */}
@@ -261,7 +265,7 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 				)}
 			</MapContainer>
 			<div className='absolute top-2 left-16 z-[1]'>
-				{!error && userLocation && !routeActiveParkingMap ?
+				{!error && userLocation && !routeActiveParkingMap ? (
 					<SearchBar
 						refreshSpots={refreshSpots}
 						position={DEFAULT_POSITION}
@@ -269,16 +273,14 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 						freeOnly={freeOnly}
 						setFreeOnly={setFreeOnly}
 						setSuggestionsPerAlert={setSuggestions}
-					/> : null
-				}
+					/>
+				) : null}
 			</div>
 			{Array.isArray(parkingOption) &&
-				parkingOption != null &&
-				parkingOption.length > 0 ? (
-
+			parkingOption != null &&
+			parkingOption.length > 0 ? (
 				<ParkChoice data={parkingOption} destination={setDestination} />
-
-			) : showAlertNoPark ? (
+			) : showAlertNoPark && !error ? (
 				<div className='fixed top-[12%] left-1/2 transform -translate-x-1/2 z-50 w-[90%] max-w-md'>
 					<div
 						role='alert'
@@ -298,11 +300,16 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 						<span className='raleway-regular'>
 							Nessun parcheggio libero in un raggio di 1 km dalla destinazione
 						</span>
+						<button
+							className='btn btn-ghost'
+							onClick={() => setShowAlertNoPark(false)}>
+							<FontAwesomeIcon icon={faXmark} />
+						</button>
 					</div>
 				</div>
 			) : null}
 			{error ? (
-				<div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50">
+				<div className='absolute top-4 left-1/2 transform -translate-x-1/2 z-50'>
 					<div
 						role='alert'
 						className='alert alert-error p-2 text-sm flex justify-center  gap-2 bg-[#ad181a] text-white'>
@@ -319,11 +326,14 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 							/>
 						</svg>
 						<span className='raleway-regular'>{error}</span>
+						<button className='btn btn-ghost' onClick={() => setError([])}>
+							<FontAwesomeIcon icon={faXmark} />
+						</button>
 					</div>
 				</div>
 			) : null}
 			{suggestions.length == 0 && (
-				<div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50">
+				<div className='absolute top-4 left-1/2 transform -translate-x-1/2 z-50'>
 					<div
 						role='alert'
 						className='alert alert-error p-2 text-sm flex justify-center  gap-2 bg-[#ad181a] text-white'>
@@ -339,12 +349,19 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 								d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'
 							/>
 						</svg>
-						<span className='raleway-regular'>La destinazione inserita è invalida!</span>
+						<span className='raleway-regular'>
+							La destinazione inserita è invalida!
+						</span>
+						<button
+							className='btn btn-ghost'
+							onClick={() => setSuggestions(null)}>
+							<FontAwesomeIcon icon={faXmark} />
+						</button>
 					</div>
 				</div>
 			)}
-			{parkingSpots.length == 0 && !error ? (
-				<div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50">
+			{parkingSpots.length == 0 && !error && showAlert ? (
+				<div className='absolute top-4 left-1/2 transform -translate-x-1/2 z-50'>
 					<div
 						role='alert'
 						className='alert alert-error p-2 text-sm flex justify-center  gap-2 bg-[#ad181a] text-white'>
@@ -360,7 +377,14 @@ const ParkingMap = ({ parkingSpots, refreshSpots }) => {
 								d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'
 							/>
 						</svg>
-						<span className='raleway-regular'>Nessun parcheggio trovato che rispetta i criteri di ricerca!</span>
+						<span className='raleway-regular'>
+							Nessun parcheggio trovato che rispetta i criteri di ricerca!
+						</span>
+						<button
+							className='btn btn-ghost'
+							onClick={() => setShowAlert(false)}>
+							<FontAwesomeIcon icon={faXmark} />
+						</button>
 					</div>
 				</div>
 			) : null}

@@ -15,8 +15,8 @@ const ParkChoice = ({ data, destination }) => {
 	return (
 		<>
 			{showOptions && (
-				<div className='fixed left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 mb-4 top-3/4'>
-					<div>
+				<div className='fixed inset-x-0 w-full flex z-10 mb-4 bottom-0 justify-center'>
+					<div className='max-h-[70vh] overflow-y-auto'>
 						<div className='w-full flex justify-end'>
 							<button onClick={() => setShowOptions(false)}>
 								<FontAwesomeIcon icon={faX} />
