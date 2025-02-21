@@ -158,10 +158,10 @@ const ReportCard = ({ report, getJWT, isAdmin, onDelete, parkingSpot }) => {
 					{isAdmin ? (
 
 						<select
-							className={`border p-2 rounded text-white w-full raleway-regular ${getBgColor(status)} sm:w-auto`}
+							className={`border p-2 rounded text-white w-full raleway-regular ${getBgColor(status)} sm:w-auto `}
 							defaultValue={report.status}
 							onChange={handleChange}>
-							<option className=' raleway-regular bg-[#ae171c]'>In sospeso</option>
+							<option className='raleway-regular bg-[#ae171c] '>In sospeso</option>
 							<option className='bg-yellow-500 raleway-regular' value='In elaborazione'>
 								In elaborazione
 							</option>
@@ -173,7 +173,7 @@ const ReportCard = ({ report, getJWT, isAdmin, onDelete, parkingSpot }) => {
 						<>
 
 							<p
-								className={`text-xs raleway-regular text-white border-none badge  ${report.status === "Evasa"
+								className={`text-xs text-nowrap raleway-regular text-white border-none badge  ${report.status === "Evasa"
 									? "bg-[#a0b536]"
 									: report.status === "In elaborazione"
 										? "bg-yellow-500"

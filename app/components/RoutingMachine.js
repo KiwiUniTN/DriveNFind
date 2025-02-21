@@ -167,9 +167,9 @@ const RoutingMachine = ({ userLocation, destination, parkingId, parkingSpots, re
 			`}
 			</style>
 			{routeActive && (
-				<div className='fixed bottom-8 flex gap-2 left-8 z-[1000]'>
+				<div className='fixed w-full flex-wrap justify-center bottom-8 flex gap-2  z-[1000] sm:left-8'>
 					<button
-						className="poppins-semibold btn btn-xs text-white bg-[#ad181a] border-none sm:btn-sm  z-10 h-auto flex items-center hover:bg-slate-900 min-w-[100px]"
+						className="-semibold btn btn-xs text-white bg-[#ad181a] border-none sm:btn-sm  z-10 h-auto flex items-center hover:bg-slate-900 min-w-[100px]"
 						onClick={() => {
 							setFreeOnly(false);
 							handleRemoveRoute();
